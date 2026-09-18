@@ -9,6 +9,7 @@ dist-electron/
 build/
 out/
 release/
+src-tauri/target/
 
 # Logs
 npm-debug.log*

@@ -1,22 +1,14 @@
 import { ModuleManifest, Topic, TopicSummary, SearchIndexEntry } from '../types/modules';
 import { loadAllModules, parseFrontmatter } from './moduleLoader';
 import { search as localSearch, initializeSearchIndex } from './searchEngine';
+import { invoke } from '@tauri-apps/api/core';
 
-declare global {
-  interface Window {
-    electronAPI?: {
-      isElectron: boolean;
-      getModulesPath: () => Promise<string>;
-      saveTopic: (moduleId: string, slug: string, rawContent: string) => Promise<{ success: boolean; error?: string }>;
-      readAllFiles: () => Promise<Record<string, string>>;
-      onModulesUpdated: (callback: (data: { filename?: string }) => void) => () => void;
-    };
-  }
+export function isDesktopEnvironment(): boolean {
+  return typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || Boolean((window as any).electronAPI?.isElectron));
 }
 
-export function isElectronEnvironment(): boolean {
-  return typeof window !== 'undefined' && Boolean(window.electronAPI?.isElectron);
-}
+// Backwards-compatibility alias
+export const isElectronEnvironment = isDesktopEnvironment;
 
 let cachedTopicsIndex: TopicSummary[] | null = null;
 
@@ -58,9 +50,10 @@ export async function saveTopicFile(
   slug: string,
   rawContent: string
 ): Promise<{ success: boolean; error?: string }> {
-  if (isElectronEnvironment() && window.electronAPI) {
+  // 1. Tauri (Rust backend)
+  if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
     try {
-      const res = await window.electronAPI.saveTopic(moduleId, slug, rawContent);
+      await invoke('save_topic', { moduleId, slug, rawContent });
       // Update local in-memory cache
       const local = loadAllModules();
       const topicIndex = local.topics.findIndex(t => t.moduleId === moduleId && t.slug === slug);
@@ -75,13 +68,14 @@ export async function saveTopicFile(
           content,
         };
       }
-      return res;
+      return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message };
+      console.error('[Tauri Rust] Error saving topic:', err);
+      return { success: false, error: String(err) };
     }
   }
 
-  // In browser, save to localStorage fallback
+  // 2. In browser / fallback: save to localStorage
   try {
     localStorage.setItem(`ingedata_override_${moduleId}_${slug}`, rawContent);
     return { success: true };
@@ -103,12 +97,6 @@ export async function executeSearch(
   return raw.filter(r => filterType === 'all' || r.type === filterType);
 }
 
-export function subscribeToModuleChanges(callback: () => void): () => void {
-  if (isElectronEnvironment() && window.electronAPI) {
-    return window.electronAPI.onModulesUpdated(() => {
-      console.log('[Electron Bridge] Hot-reload triggered by modules update on disk');
-      callback();
-    });
-  }
+export function subscribeToModuleChanges(_callback: () => void): () => void {
   return () => {};
 }
