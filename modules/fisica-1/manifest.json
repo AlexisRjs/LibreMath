@@ -1,0 +1,28 @@
+{
+  "id": "fisica-1",
+  "code": "FIS1 - UTN FRRO",
+  "name": "Física I (Mecánica y Termodinámica)",
+  "description": "Cátedra Homogénea UTN FRRO: Cinemática, dinámica, energía, choques, sólido rígido, estática, elasticidad, oscilaciones y termodinámica.",
+  "icon": "Atom",
+  "color": "emerald",
+  "units": [
+    { "id": "u1", "title": "Unidad 1: Cinemática Vectorial y Coordenadas Intrínsecas" },
+    { "id": "u2", "title": "Unidad 2: Dinámica Newtoniana y Sistemas No Inerciales" },
+    { "id": "u3", "title": "Unidad 3: Trabajo, Energía, Potencial y Estabilidad" },
+    { "id": "u4", "title": "Unidad 4: Cantidad de Movimiento, Choques y Centro de Masa" },
+    { "id": "u5", "title": "Unidad 5: Dinámica del Sólido Rígido, Steiner y Rodadura Pura" },
+    { "id": "u6", "title": "Unidad 6: Estática del Cuerpo Rígido y Elasticidad (Hooke/Young)" },
+    { "id": "u7", "title": "Unidad 7: Movimiento Armónico Simple (MAS) y Resonancia" },
+    { "id": "u8", "title": "Unidad 8: Termodinámica, Gases Ideales y Ciclo de Carnot" }
+  ],
+  "topicSlugs": [
+    "cinematica",
+    "dinamica-newton",
+    "trabajo-y-energia",
+    "momento-lineal",
+    "solido-rigido-rotacion",
+    "estatica-y-elasticidad",
+    "movimiento-oscilatorio-mas",
+    "termodinamica-carnot"
+  ]
+}

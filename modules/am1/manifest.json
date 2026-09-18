@@ -1,0 +1,18 @@
+{
+  "id": "am1",
+  "code": "AM1 - UTN FRRO",
+  "name": "Análisis Matemático I",
+  "description": "Cálculo infinitesimal en una variable: Funciones, Límites y Continuidad, Cálculo Diferencial y Estudio de Funciones, y Cálculo Integral y Series.",
+  "icon": "Sigma",
+  "color": "cyan",
+  "units": [
+    { "id": "u1", "title": "Tema 1: Funciones, Límites y Continuidad" },
+    { "id": "u2", "title": "Tema 2: Cálculo Diferencial, Teoremas del Valor Medio y Estudio de Funciones" },
+    { "id": "u3", "title": "Tema 3: Cálculo Integral, Teoremas Fundamentales y Aplicaciones" }
+  ],
+  "topicSlugs": [
+    "funciones",
+    "derivadas",
+    "integrales"
+  ]
+}

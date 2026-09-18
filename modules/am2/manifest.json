@@ -1,0 +1,28 @@
+{
+  "id": "am2",
+  "code": "AM2 - Stewart",
+  "name": "Análisis Matemático II",
+  "description": "Cálculo Multivariable y Vectorial basado en James Stewart (Secciones 14 a 17): Funciones vectoriales, derivadas parciales, optimización, integrales múltiples, análisis vectorial y ecuaciones diferenciales.",
+  "icon": "Compass",
+  "color": "blue",
+  "units": [
+    { "id": "u1", "title": "U1: Funciones Vectoriales" },
+    { "id": "u2", "title": "U2: Funciones de Varias Variables" },
+    { "id": "u3", "title": "U3: Derivadas Parciales" },
+    { "id": "u4", "title": "U4: Extremos" },
+    { "id": "u5", "title": "U5: Integrales Múltiples" },
+    { "id": "u6", "title": "U6: Integrales de Línea" },
+    { "id": "u7", "title": "U7: Integrales de Superficies" },
+    { "id": "u8", "title": "U8: Ecuaciones Diferenciales" }
+  ],
+  "topicSlugs": [
+    "funciones-vectoriales",
+    "funciones-de-varias-variables",
+    "derivadas-parciales",
+    "extremos",
+    "integrales-multiples",
+    "integrales-de-linea",
+    "integrales-de-superficies",
+    "ecuaciones-diferenciales"
+  ]
+}

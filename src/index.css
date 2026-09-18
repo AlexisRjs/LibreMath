@@ -1,0 +1,192 @@
+@import "katex/dist/katex.min.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #181818;
+  --bg-secondary-alt: #141414;
+  --bg-hover: #262626;
+  --bg-active: #2f2f2f;
+  --border-color: #2a2a2a;
+  --border-subtle: #222222;
+  --text-normal: #dcddde;
+  --text-muted: #8e8e8e;
+  --text-faint: #5a5a5a;
+  --accent-purple: #7c3aed;
+  --accent-purple-hover: #905cf6;
+}
+
+@layer base {
+  * {
+    border-color: var(--border-color);
+  }
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-normal);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: text;
+  }
+}
+
+/* Obsidian Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #484848;
+}
+
+/* KaTeX Clean Minimalist styling */
+.katex-display {
+  margin: 1rem 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+.katex {
+  font-size: 1.05em;
+  text-rendering: geometricPrecision;
+}
+
+/* Obsidian Callouts Styling (Exact Match) */
+.obsidian-callout {
+  border-left: 3px solid #7c3aed;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  padding: 0.6rem 0.85rem;
+  margin: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.obsidian-callout-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  color: #a78bfa;
+}
+
+.obsidian-callout-note {
+  border-left-color: #7c3aed;
+}
+.obsidian-callout-tip {
+  border-left-color: #10b981;
+}
+.obsidian-callout-tip .obsidian-callout-header {
+  color: #34d399;
+}
+.obsidian-callout-warning {
+  border-left-color: #f59e0b;
+}
+.obsidian-callout-warning .obsidian-callout-header {
+  color: #fbbf24;
+}
+.obsidian-callout-important {
+  border-left-color: #ef4444;
+}
+.obsidian-callout-important .obsidian-callout-header {
+  color: #f87171;
+}
+
+.obsidian-callout-body {
+  color: #c4c4c4;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* Obsidian Internal Wiki Links */
+.obsidian-internal-link {
+  color: #a78bfa;
+  text-decoration: underline;
+  text-decoration-color: rgba(167, 139, 250, 0.3);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.obsidian-internal-link:hover {
+  color: #c4b5fd;
+  text-decoration-color: #c4b5fd;
+}
+
+/* CodeMirror Obsidian Clean Theme */
+.codemirror-obsidian .cm-editor {
+  background-color: transparent !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 13.5px !important;
+}
+.codemirror-obsidian .cm-gutters {
+  background-color: #181818 !important;
+  border-right: 1px solid #282828 !important;
+  color: #555555 !important;
+}
+
+/* Obsidian Typography Styles */
+.prose-obsidian h1 {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.prose-obsidian h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #f3f3f3;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.prose-obsidian h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #e5e5e5;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-obsidian p {
+  line-height: 1.7;
+  color: #cccccc;
+  margin-bottom: 0.85rem;
+  font-size: 0.95rem;
+}
+
+.prose-obsidian ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 1rem;
+  color: #cccccc;
+}
+
+.prose-obsidian li {
+  margin-bottom: 0.35rem;
+  line-height: 1.6;
+}
+
+.prose-obsidian code {
+  background-color: rgba(255, 255, 255, 0.07);
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}

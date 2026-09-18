@@ -1,0 +1,26 @@
+{
+  "id": "algebra",
+  "code": "AGA - UTN FRRO",
+  "name": "Álgebra y Geometría Analítica",
+  "description": "Cátedra Homogénea UTN FRRO: Matrices, sistemas lineales, geometría R3, espacios vectoriales, transformaciones lineales, diagonalización y cuádricas.",
+  "icon": "Grid",
+  "color": "violet",
+  "units": [
+    { "id": "u1", "title": "Unidad 1: Matrices, Operaciones y Determinantes" },
+    { "id": "u2", "title": "Unidad 2: Sistemas de Ecuaciones Lineales y Rouché-Frobenius" },
+    { "id": "u3", "title": "Unidad 3: Geometría Vectorial: Rectas y Planos en R3" },
+    { "id": "u4", "title": "Unidad 4: Espacios y Subespacios Vectoriales, Bases y Dimensión" },
+    { "id": "u5", "title": "Unidad 5: Transformaciones Lineales, Núcleo e Imagen" },
+    { "id": "u6", "title": "Unidad 6: Autovalores, Autovectores y Diagonalización" },
+    { "id": "u7", "title": "Unidad 7: Cónicas, Rotación Matricial y Superficies Cuádricas" }
+  ],
+  "topicSlugs": [
+    "matrices-y-determinantes",
+    "sistemas-lineales",
+    "vectores-rectas-planos",
+    "espacios-vectoriales",
+    "transformaciones-lineales",
+    "diagonalizacion-autovalores",
+    "conicas-y-cuadricas"
+  ]
+}
