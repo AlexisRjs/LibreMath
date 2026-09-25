@@ -3,6 +3,7 @@ import { Topic, ModuleManifest } from '../types/modules';
 import { saveTopicFile, createTopicFile, deleteTopicFile } from '../services/desktopBridge';
 import { exportTopicToPdf } from '../services/pdfExporter';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { markdownToHtml, htmlToMarkdown } from '../services/htmlMarkdownConverter';
 import {
   FileText,
   Plus,
@@ -13,6 +14,8 @@ import {
   Heading3,
   Underline,
   Strikethrough,
+  Bold,
+  Italic,
   Code,
   Sigma,
   Eye,
@@ -22,6 +25,7 @@ import {
   MoreHorizontal,
   FileDown,
   Copy,
+  Edit3,
 } from 'lucide-react';
 
 interface MyNotesCanvasProps {
@@ -53,7 +57,6 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   const [activeNote, setActiveNote] = useState<Topic>(() => {
     if (initialTopic && initialTopic.isUserNote) return initialTopic;
     if (userNotes.length > 0) return userNotes[0];
-    // Default fallback note
     return {
       slug: 'mis-apuntes-generales',
       moduleId: manifests[0]?.id || 'algebra',
@@ -65,7 +68,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
       description: 'Lienzo para escribir notas, fórmulas y apuntes rápidos',
       variables: [],
       formulas: [],
-      content: `# Mis Apuntes y Fórmulas\n\nHaz clic derecho en cualquier parte de este lienzo para aplicar formatos:\n- Subrayado\n- Fórmulas matemáticas\n- Rayado (tachado)\n- Código de programación\n- Título 1, 2, 3 o texto común\n\n$$\n\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)\n$$\n\nPuedes escribir directamente aquí sin cambiar entre modo lectura y escritura.\n`,
+      content: `# Mis Apuntes y Fórmulas\n\nHaz clic derecho o usa la barra superior para dar formato:\n- Subrayado\n- Rayado (tachado)\n- Título 1, 2, 3 o texto común\n- Fórmulas matemáticas y código\n\n$$\n\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)\n$$\n\n¡Todo lo que escribas aquí se ve con el formato real aplicado directamente en pantalla!\n`,
       isUserNote: true,
     };
   });
@@ -73,11 +76,13 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   const [noteTitle, setNoteTitle] = useState(activeNote.title);
   const [content, setContent] = useState(activeNote.content);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  const [editorMode, setEditorMode] = useState<'visual' | 'markdown'>('visual');
   const [viewLayout, setViewLayout] = useState<'canvas-only' | 'split'>('canvas-only');
   const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
 
+  const visualEditorRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -86,6 +91,11 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
     setNoteTitle(activeNote.title);
     setContent(activeNote.content);
     setSaveStatus('saved');
+
+    // Populate visual editor with rendered HTML
+    if (visualEditorRef.current) {
+      visualEditorRef.current.innerHTML = markdownToHtml(activeNote.content);
+    }
   }, [activeNote.slug, activeNote.moduleId]);
 
   // Debounced auto-save directly to disk & localStorage
@@ -115,7 +125,16 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
     [activeNote]
   );
 
-  const handleContentChange = (val: string) => {
+  // Handle typing inside the visual WYSIWYG editor
+  const handleVisualInput = () => {
+    if (!visualEditorRef.current) return;
+    const md = htmlToMarkdown(visualEditorRef.current);
+    setContent(md);
+    triggerAutoSave(noteTitle, md);
+  };
+
+  // Handle typing inside markdown raw textarea (if in markdown mode)
+  const handleMarkdownTextareaChange = (val: string) => {
     setContent(val);
     triggerAutoSave(noteTitle, val);
   };
@@ -123,6 +142,27 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   const handleTitleChange = (val: string) => {
     setNoteTitle(val);
     triggerAutoSave(val, content);
+  };
+
+  // Switch between Visual (no markdown symbols) and Raw Markdown
+  const handleSwitchMode = (mode: 'visual' | 'markdown') => {
+    if (mode === editorMode) return;
+    if (mode === 'visual') {
+      // Sync markdown back into visual editor
+      setEditorMode('visual');
+      setTimeout(() => {
+        if (visualEditorRef.current) {
+          visualEditorRef.current.innerHTML = markdownToHtml(content);
+        }
+      }, 10);
+    } else {
+      // Sync from visual editor to markdown before switching
+      if (visualEditorRef.current) {
+        const md = htmlToMarkdown(visualEditorRef.current);
+        setContent(md);
+      }
+      setEditorMode('markdown');
+    }
   };
 
   // Create a brand new note directly
@@ -150,8 +190,9 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
     exportTopicToPdf({
       title: noteTitle,
       unit: activeNote.unit || 'Mis Notas',
-      moduleName: 'LibreMath - Mis Notas',
+      moduleName: 'Mis Notas',
       markdownContent: content,
+      isUserNote: true,
     });
   };
 
@@ -184,10 +225,10 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   };
 
   // Right-click context menu handler
-  const handleContextMenu = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+  const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     const x = Math.min(e.clientX, window.innerWidth - 240);
-    const y = Math.min(e.clientY, window.innerHeight - 340);
+    const y = Math.min(e.clientY, window.innerHeight - 380);
     setContextMenu({ x, y });
   };
 
@@ -206,9 +247,62 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
     };
   }, []);
 
-  // Format insertion actions (underline, math, strike, code, headings, common text)
-  const applyFormat = (formatType: 'underline' | 'math' | 'strike' | 'code' | 'h1' | 'h2' | 'h3' | 'common') => {
+  // Format insertion actions (underline, math, strike, code, headings, bold, italic, common text)
+  const applyFormat = (formatType: 'underline' | 'math' | 'strike' | 'bold' | 'italic' | 'code' | 'h1' | 'h2' | 'h3' | 'common') => {
     setContextMenu(null);
+
+    if (editorMode === 'visual') {
+      const visualEl = visualEditorRef.current;
+      if (!visualEl) return;
+      visualEl.focus();
+
+      switch (formatType) {
+        case 'h1':
+          document.execCommand('formatBlock', false, '<h1>');
+          break;
+        case 'h2':
+          document.execCommand('formatBlock', false, '<h2>');
+          break;
+        case 'h3':
+          document.execCommand('formatBlock', false, '<h3>');
+          break;
+        case 'common':
+          document.execCommand('formatBlock', false, '<p>');
+          break;
+        case 'underline':
+          document.execCommand('underline');
+          break;
+        case 'strike':
+          document.execCommand('strikeThrough');
+          break;
+        case 'bold':
+          document.execCommand('bold');
+          break;
+        case 'italic':
+          document.execCommand('italic');
+          break;
+        case 'code': {
+          const selection = window.getSelection();
+          if (selection && selection.toString()) {
+            document.execCommand('insertHTML', false, `<code>${selection.toString()}</code>`);
+          } else {
+            document.execCommand('insertHTML', false, `<pre><code># Código\ndef calcular(x):\n    return x ** 2</code></pre><p><br></p>`);
+          }
+          break;
+        }
+        case 'math': {
+          const selection = window.getSelection();
+          const mathExpr = selection && selection.toString() ? selection.toString() : '\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)';
+          document.execCommand('insertHTML', false, `<p>$$\n${mathExpr}\n$$</p><p><br></p>`);
+          break;
+        }
+      }
+
+      handleVisualInput();
+      return;
+    }
+
+    // Markdown textarea fallback format application
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -221,47 +315,30 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
 
     switch (formatType) {
       case 'underline':
-        if (selectedText) {
-          replacement = `<u>${selectedText}</u>`;
-          cursorOffset = replacement.length;
-        } else {
-          replacement = `<u>texto subrayado</u>`;
-          cursorOffset = 3; // inside tag
-        }
+        replacement = selectedText ? `<u>${selectedText}</u>` : `<u>texto subrayado</u>`;
+        cursorOffset = selectedText ? replacement.length : 3;
         break;
-
-      case 'math':
-        if (selectedText) {
-          replacement = `$$\n${selectedText}\n$$`;
-          cursorOffset = replacement.length;
-        } else {
-          replacement = `$$\n\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)\n$$`;
-          cursorOffset = replacement.length;
-        }
-        break;
-
       case 'strike':
-        if (selectedText) {
-          replacement = `~~${selectedText}~~`;
-          cursorOffset = replacement.length;
-        } else {
-          replacement = `~~texto rayado~~`;
-          cursorOffset = 2;
-        }
+        replacement = selectedText ? `~~${selectedText}~~` : `~~texto rayado~~`;
+        cursorOffset = selectedText ? replacement.length : 2;
         break;
-
+      case 'bold':
+        replacement = selectedText ? `**${selectedText}**` : `**texto en negrita**`;
+        cursorOffset = selectedText ? replacement.length : 2;
+        break;
+      case 'italic':
+        replacement = selectedText ? `*${selectedText}*` : `*texto en cursiva*`;
+        cursorOffset = selectedText ? replacement.length : 1;
+        break;
+      case 'math':
+        replacement = selectedText ? `$$\n${selectedText}\n$$` : `$$\n\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)\n$$`;
+        cursorOffset = replacement.length;
+        break;
       case 'code':
-        if (selectedText) {
-          replacement = `\`\`\`python\n${selectedText}\n\`\`\``;
-          cursorOffset = replacement.length;
-        } else {
-          replacement = `\`\`\`python\n# Código de programación\ndef calcular(x):\n    return x ** 2\n\`\`\``;
-          cursorOffset = replacement.length;
-        }
+        replacement = selectedText ? `\`\`\`python\n${selectedText}\n\`\`\`` : `\`\`\`python\n# Código\ndef calcular(x):\n    return x ** 2\n\`\`\``;
+        cursorOffset = replacement.length;
         break;
-
       case 'h1': {
-        // Find beginning of current line
         const before = content.substring(0, start);
         const lineStart = before.lastIndexOf('\n') + 1;
         const lineEnd = content.indexOf('\n', start);
@@ -277,7 +354,6 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         }, 10);
         return;
       }
-
       case 'h2': {
         const before = content.substring(0, start);
         const lineStart = before.lastIndexOf('\n') + 1;
@@ -294,7 +370,6 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         }, 10);
         return;
       }
-
       case 'h3': {
         const before = content.substring(0, start);
         const lineStart = before.lastIndexOf('\n') + 1;
@@ -311,9 +386,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         }, 10);
         return;
       }
-
       case 'common': {
-        // Strip markdown headings on the current line
         const before = content.substring(0, start);
         const lineStart = before.lastIndexOf('\n') + 1;
         const lineEnd = content.indexOf('\n', start);
@@ -335,24 +408,35 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
     setContent(updated);
     triggerAutoSave(noteTitle, updated);
 
-    // Reposition cursor
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
     }, 10);
   };
 
-  // Keyboard shortcut Ctrl+S
+  // Keyboard shortcut Ctrl+S, Ctrl+B, Ctrl+I, Ctrl+U
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        triggerAutoSave(noteTitle, content);
+      if (e.ctrlKey || e.metaKey) {
+        const key = e.key.toLowerCase();
+        if (key === 's') {
+          e.preventDefault();
+          triggerAutoSave(noteTitle, content);
+        } else if (key === 'b' && editorMode === 'visual') {
+          e.preventDefault();
+          applyFormat('bold');
+        } else if (key === 'i' && editorMode === 'visual') {
+          e.preventDefault();
+          applyFormat('italic');
+        } else if (key === 'u' && editorMode === 'visual') {
+          e.preventDefault();
+          applyFormat('underline');
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [noteTitle, content, triggerAutoSave]);
+  }, [noteTitle, content, editorMode, triggerAutoSave]);
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
   const lineCount = content.split('\n').length;
@@ -444,6 +528,34 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
 
           {/* Quick Controls & Status */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Editor Mode Selector: Visual WYSIWYG vs Raw Markdown */}
+            <div className="flex items-center bg-[#1b152d] border border-purple-900/50 rounded-lg p-0.5 text-xs">
+              <button
+                onClick={() => handleSwitchMode('visual')}
+                className={`px-2.5 py-1 rounded flex items-center gap-1.5 transition-colors ${
+                  editorMode === 'visual'
+                    ? 'bg-purple-600 text-white font-medium shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Modo visual en vivo (ves el formato aplicado sin símbolos markdown)"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span className="text-[11px]">Visual</span>
+              </button>
+              <button
+                onClick={() => handleSwitchMode('markdown')}
+                className={`px-2.5 py-1 rounded flex items-center gap-1.5 transition-colors ${
+                  editorMode === 'markdown'
+                    ? 'bg-purple-600 text-white font-medium shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Modo código Markdown"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span className="text-[11px]">Markdown</span>
+              </button>
+            </div>
+
             {/* Save Status Badge */}
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-950/50 border border-purple-900/40 text-[11px] font-mono">
               {saveStatus === 'saved' ? (
@@ -469,7 +581,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                   ? 'bg-purple-600 border-purple-500 text-white'
                   : 'bg-[#1b152d] border-purple-900/40 text-slate-300 hover:text-white'
               }`}
-              title={viewLayout === 'split' ? 'Ocultar vista previa dividida' : 'Ver pantalla dividida con KaTeX'}
+              title={viewLayout === 'split' ? 'Ocultar vista previa dividida' : 'Ver pantalla dividida con vista previa'}
             >
               <Columns className="w-3.5 h-3.5" />
               <span className="hidden sm:inline text-[11px]">Dividir</span>
@@ -524,12 +636,14 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
 
         {/* Quick Format Ribbon */}
         <div className="px-6 py-1.5 bg-[#140e21] border-b border-purple-950/40 flex items-center gap-1 overflow-x-auto text-xs text-slate-300">
-          <span className="text-[10px] font-mono text-purple-400/80 mr-1 shrink-0">Click derecho o atajos:</span>
+          <span className="text-[10px] font-mono text-purple-400/80 mr-1 shrink-0">
+            {editorMode === 'visual' ? 'Formato visual:' : 'Atajos Markdown:'}
+          </span>
 
           <button
             onClick={() => applyFormat('h1')}
             className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 font-medium"
-            title="Formatear como Título 1"
+            title="Formatear como Título 1 (H1)"
           >
             <Heading1 className="w-3.5 h-3.5 text-purple-400" />
             <span className="text-[11px]">T1</span>
@@ -537,7 +651,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
           <button
             onClick={() => applyFormat('h2')}
             className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 font-medium"
-            title="Formatear como Título 2"
+            title="Formatear como Título 2 (H2)"
           >
             <Heading2 className="w-3.5 h-3.5 text-purple-400" />
             <span className="text-[11px]">T2</span>
@@ -545,7 +659,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
           <button
             onClick={() => applyFormat('h3')}
             className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 font-medium"
-            title="Formatear como Título 3"
+            title="Formatear como Título 3 (H3)"
           >
             <Heading3 className="w-3.5 h-3.5 text-purple-400" />
             <span className="text-[11px]">T3</span>
@@ -554,52 +668,83 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
           <span className="text-purple-900 mx-1">|</span>
 
           <button
+            onClick={() => applyFormat('bold')}
+            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 font-bold"
+            title="Negrita (Ctrl+B)"
+          >
+            <Bold className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-[11px]">Negrita</span>
+          </button>
+          <button
+            onClick={() => applyFormat('italic')}
+            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 italic"
+            title="Cursiva (Ctrl+I)"
+          >
+            <Italic className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-[11px]">Cursiva</span>
+          </button>
+          <button
             onClick={() => applyFormat('underline')}
             className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
-            title="Subrayar texto (<u>...</u>)"
+            title="Subrayar texto (Ctrl+U)"
           >
             <Underline className="w-3.5 h-3.5 text-purple-400" />
-            <span className="text-[11px]">Subrayado</span>
+            <span className="text-[11px] underline">Subrayado</span>
           </button>
+          <button
+            onClick={() => applyFormat('strike')}
+            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
+            title="Rayar / Tachar texto"
+          >
+            <Strikethrough className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-[11px] line-through">Rayado</span>
+          </button>
+
+          <span className="text-purple-900 mx-1">|</span>
+
           <button
             onClick={() => applyFormat('math')}
             className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
             title="Insertar bloque de fórmula matemática KaTeX"
           >
-            <Sigma className="w-3.5 h-3.5 text-purple-400" />
+            <Sigma className="w-3.5 h-3.5 text-emerald-400" />
             <span className="text-[11px]">Fórmula</span>
-          </button>
-          <button
-            onClick={() => applyFormat('strike')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
-            title="Rayar / Tachar texto (~~...~~)"
-          >
-            <Strikethrough className="w-3.5 h-3.5 text-purple-400" />
-            <span className="text-[11px]">Rayado</span>
           </button>
           <button
             onClick={() => applyFormat('code')}
             className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
             title="Bloque de código de programación"
           >
-            <Code className="w-3.5 h-3.5 text-purple-400" />
+            <Code className="w-3.5 h-3.5 text-amber-400" />
             <span className="text-[11px]">Código</span>
           </button>
         </div>
 
         {/* 3. The Pure Writing Canvas */}
         <div className="flex-1 flex overflow-hidden relative">
-          {/* Main Writing Canvas (Direct Textarea Canvas) */}
+          {/* Main Writing Canvas (Visual WYSIWYG or Markdown) */}
           <div className={`h-full flex flex-col ${viewLayout === 'split' ? 'w-1/2 border-r border-purple-950/60' : 'w-full'}`}>
-            <textarea
-              ref={textareaRef}
-              value={content}
-              onChange={e => handleContentChange(e.target.value)}
-              onContextMenu={handleContextMenu}
-              autoFocus
-              placeholder="Escribe directamente aquí en tu lienzo... (Clic derecho para formatear)"
-              className="flex-1 w-full h-full p-6 sm:p-8 bg-[#151020] text-slate-100 font-mono text-sm leading-relaxed outline-none resize-none placeholder:text-[#555555] selection:bg-purple-600/40 select-text"
-            />
+            {editorMode === 'visual' ? (
+              <div
+                ref={visualEditorRef}
+                contentEditable
+                suppressContentEditableWarning
+                onInput={handleVisualInput}
+                onContextMenu={handleContextMenu}
+                data-placeholder="Escribe directamente aquí tus apuntes... (El formato se ve aplicado en tiempo real)"
+                className="visual-notes-editor flex-1 w-full h-full p-6 sm:p-8 bg-[#151020] text-slate-100 outline-none overflow-y-auto leading-relaxed selection:bg-purple-600/40 select-text font-sans"
+              />
+            ) : (
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={e => handleMarkdownTextareaChange(e.target.value)}
+                onContextMenu={handleContextMenu}
+                autoFocus
+                placeholder="Escribe en formato Markdown aquí..."
+                className="flex-1 w-full h-full p-6 sm:p-8 bg-[#151020] text-slate-100 font-mono text-sm leading-relaxed outline-none resize-none placeholder:text-[#555555] selection:bg-purple-600/40 select-text"
+              />
+            )}
           </div>
 
           {/* Optional Split Live Preview Canvas */}
@@ -634,7 +779,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                   <Heading1 className="w-4 h-4 text-purple-400" />
                   <span className="font-semibold text-sm">Título 1</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">#</span>
+                <span className="text-[10px] font-mono text-slate-400">Grande</span>
               </button>
               <button
                 onClick={() => applyFormat('h2')}
@@ -644,7 +789,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                   <Heading2 className="w-4 h-4 text-purple-400" />
                   <span className="font-medium text-xs">Título 2</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">##</span>
+                <span className="text-[10px] font-mono text-slate-400">Mediano</span>
               </button>
               <button
                 onClick={() => applyFormat('h3')}
@@ -654,7 +799,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                   <Heading3 className="w-4 h-4 text-purple-400" />
                   <span className="text-xs">Título 3</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">###</span>
+                <span className="text-[10px] font-mono text-slate-400">Subsección</span>
               </button>
               <button
                 onClick={() => applyFormat('common')}
@@ -671,8 +816,28 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
 
               {/* Format Section */}
               <div className="px-3 py-1 text-[10px] font-mono text-purple-300/70 uppercase tracking-wider">
-                Formato
+                Formato Aplicado
               </div>
+              <button
+                onClick={() => applyFormat('bold')}
+                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors font-bold"
+              >
+                <div className="flex items-center gap-2">
+                  <Bold className="w-4 h-4 text-purple-400" />
+                  <span>Negrita</span>
+                </div>
+                <span className="text-[10px] font-mono text-slate-400">Ctrl+B</span>
+              </button>
+              <button
+                onClick={() => applyFormat('italic')}
+                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors italic"
+              >
+                <div className="flex items-center gap-2">
+                  <Italic className="w-4 h-4 text-purple-400" />
+                  <span>Cursiva</span>
+                </div>
+                <span className="text-[10px] font-mono text-slate-400">Ctrl+I</span>
+              </button>
               <button
                 onClick={() => applyFormat('underline')}
                 className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
@@ -681,17 +846,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                   <Underline className="w-4 h-4 text-purple-400" />
                   <span className="underline">Subrayado</span>
                 </div>
-                <span className="text-[10px] font-mono text-purple-400/80">&lt;u&gt;</span>
-              </button>
-              <button
-                onClick={() => applyFormat('math')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Sigma className="w-4 h-4 text-emerald-400" />
-                  <span>Fórmula matemática</span>
-                </div>
-                <span className="text-[10px] font-mono text-emerald-400">$$ LaTeX</span>
+                <span className="text-[10px] font-mono text-purple-400/80">Ctrl+U</span>
               </button>
               <button
                 onClick={() => applyFormat('strike')}
@@ -701,7 +856,17 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                   <Strikethrough className="w-4 h-4 text-rose-400" />
                   <span className="line-through">Rayado</span>
                 </div>
-                <span className="text-[10px] font-mono text-rose-400">~~texto~~</span>
+                <span className="text-[10px] font-mono text-rose-400">Tachado</span>
+              </button>
+              <button
+                onClick={() => applyFormat('math')}
+                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Sigma className="w-4 h-4 text-emerald-400" />
+                  <span>Fórmula matemática</span>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-400">KaTeX</span>
               </button>
               <button
                 onClick={() => applyFormat('code')}
@@ -711,7 +876,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                   <Code className="w-4 h-4 text-amber-400" />
                   <span>Código de prog.</span>
                 </div>
-                <span className="text-[10px] font-mono text-amber-400">```code</span>
+                <span className="text-[10px] font-mono text-amber-400">Bloque</span>
               </button>
             </div>
           )}
@@ -723,6 +888,9 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
             <span>{lineCount} líneas</span>
             <span>{wordCount} palabras</span>
             <span>{content.length} caracteres</span>
+            <span className="text-purple-400/70">
+              Modo: {editorMode === 'visual' ? 'Visual en vivo' : 'Markdown'}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 text-purple-400/80">

@@ -6,10 +6,12 @@ export interface PdfExportOptions {
   unit?: string;
   moduleName?: string;
   markdownContent: string;
+  isUserNote?: boolean;
 }
 
 export async function exportTopicToPdf(options: PdfExportOptions): Promise<void> {
-  const { title, unit = 'Apuntes y Anotaciones', moduleName = 'LibreMath', markdownContent } = options;
+  const { title, unit = 'Apuntes y Anotaciones', moduleName = 'LibreMath', markdownContent, isUserNote = false } = options;
+  const showFooter = !isUserNote;
 
   // 1. Render Markdown with KaTeX math to HTML
   const bodyHtml = renderObsidianMarkdown(markdownContent);
@@ -19,7 +21,13 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
     year: 'numeric',
   });
 
-  // 2. Build print HTML document with repeating footer on EVERY page
+  const brandDisplay = isUserNote
+    ? 'LibreMath • Mis Notas'
+    : (moduleName.toLowerCase().startsWith('libremath')
+        ? moduleName
+        : `LibreMath • ${moduleName}`);
+
+  // 2. Build print HTML document (repeating footer only for subject pages, excluded for user notes)
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -29,7 +37,7 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
   <style>
     @page {
       size: A4 portrait;
-      margin: 12mm 14mm 14mm 14mm;
+      margin: ${showFooter ? '12mm 14mm 14mm 14mm' : '14mm 14mm 14mm 14mm'};
     }
     *, *::before, *::after {
       box-sizing: border-box;
@@ -69,7 +77,7 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
       padding: 0;
     }
     .footer-spacer {
-      height: 48mm;
+      height: 26mm;
       width: 100%;
     }
 
@@ -87,13 +95,15 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
       z-index: 9999;
     }
     .pdf-fixed-footer img {
-      width: 100%;
+      width: auto;
       max-width: 100%;
       height: auto;
-      max-height: 44mm;
+      max-height: 21mm;
       object-fit: contain;
       display: block;
       margin: 0 auto;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
     }
 
     /* Document header styling */
@@ -217,6 +227,7 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
       border: 1px solid #e5e7eb;
       padding: 8px 12px;
       text-align: left;
+      vertical-align: middle;
     }
     table:not(.print-layout-table) th {
       background-color: #f9fafb;
@@ -224,7 +235,10 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
       color: #374151;
     }
 
-    /* KaTeX print rules */
+    /* KaTeX print rules - Standard comfortable size */
+    .katex {
+      font-size: 1.05em;
+    }
     .katex-display {
       margin: 12px 0;
       padding: 6px 0;
@@ -232,6 +246,13 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
       text-align: center;
       page-break-inside: avoid;
       break-inside: avoid;
+    }
+    /* Fractions specifically: compensate for default KaTeX fraction shrinkage */
+    .katex .mfrac {
+      font-size: 1.18em;
+    }
+    table .katex .mfrac {
+      font-size: 1.25em;
     }
 
     /* Obsidian Callouts print rules */
@@ -297,7 +318,7 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
         <td class="print-td-content">
           <div class="header">
             <div class="header-top">
-              <span class="brand">LibreMath • ${moduleName}</span>
+              <span class="brand">${brandDisplay}</span>
               <span>${dateStr}</span>
             </div>
             <h1 class="title">${title}</h1>
@@ -310,19 +331,19 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
         </td>
       </tr>
     </tbody>
-    <tfoot>
+    ${showFooter ? `<tfoot>
       <tr>
         <td class="print-td-footer-spacer">
           <div class="footer-spacer"></div>
         </td>
       </tr>
-    </tfoot>
+    </tfoot>` : ''}
   </table>
 
-  <!-- Persistent Page Footer Image present on every single printed sheet -->
+  ${showFooter ? `<!-- Persistent Page Footer Image present on every single printed sheet for module subjects -->
   <div class="pdf-fixed-footer">
     <img src="${PDF_FOOTER_BASE64}" alt="Universitarios por la Libertad" />
-  </div>
+  </div>` : ''}
 </body>
 </html>`;
 
@@ -352,12 +373,14 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
     if (doc.fonts) {
       await doc.fonts.ready;
     }
-    const footerImg = doc.querySelector('.pdf-fixed-footer img') as HTMLImageElement;
-    if (footerImg && !footerImg.complete) {
-      await new Promise((resolve) => {
-        footerImg.onload = resolve;
-        footerImg.onerror = resolve;
-      });
+    if (showFooter) {
+      const footerImg = doc.querySelector('.pdf-fixed-footer img') as HTMLImageElement;
+      if (footerImg && !footerImg.complete) {
+        await new Promise((resolve) => {
+          footerImg.onload = resolve;
+          footerImg.onerror = resolve;
+        });
+      }
     }
   } catch (err) {
     console.warn('Error waiting for print assets:', err);

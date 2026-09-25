@@ -47,7 +47,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({
   }
 
   return (
-    <div className={`relative group my-3 p-3 rounded-lg bg-darkviolet-925/90 border border-purple-900/40 shadow-inner overflow-x-auto ${className}`}>
+    <div className={`relative group my-3 p-3 rounded-lg bg-darkviolet-925/90 border border-purple-900/40 shadow-inner overflow-x-auto text-center ${className}`}>
       {copyable && (
         <button
           onClick={handleCopy}

@@ -15,7 +15,6 @@ import {
   ChevronsDownUp,
   Settings,
   HelpCircle,
-  User,
   FileText,
   Plus,
   PenTool,
@@ -87,14 +86,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <nav className="w-11 h-full bg-[#141414] border-r border-[#262626] flex flex-col items-center justify-between py-2 shrink-0 z-20">
         {/* Top Tools */}
         <div className="flex flex-col items-center gap-1 w-full">
+          {/* App Logo */}
+          <div className="w-8 h-8 rounded-lg mb-1 flex items-center justify-center p-1 bg-purple-950/40 border border-purple-800/30" title="LibreMath">
+            <img src="/app-icon.png" alt="LibreMath" className="w-full h-full object-contain opacity-95 hover:opacity-100 transition-opacity" />
+          </div>
+
           {/* Files Explorer Toggle */}
           <button
             onClick={() => setActiveView('topic')}
-            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${
-              activeView === 'topic'
-                ? 'bg-[#2a2a2a] text-white'
-                : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
-            }`}
+            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${activeView === 'topic'
+              ? 'bg-[#2a2a2a] text-white'
+              : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
+              }`}
             title="Explorador de Archivos"
           >
             <FolderOpen className="w-4 h-4" />
@@ -103,11 +106,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Mis Notas Button */}
           <button
             onClick={() => setActiveView('my-notes')}
-            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${
-              activeView === 'my-notes'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/40'
-                : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
-            }`}
+            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${activeView === 'my-notes'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/40'
+              : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
+              }`}
             title="Mis Notas (Lienzo para escribir)"
           >
             <PenTool className="w-4 h-4" />
@@ -125,11 +127,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Bookmarks / Favorites */}
           <button
             onClick={() => setActiveView('favorites')}
-            className={`relative w-8 h-8 rounded flex items-center justify-center transition-colors ${
-              activeView === 'favorites'
-                ? 'bg-[#2a2a2a] text-white'
-                : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
-            }`}
+            className={`relative w-8 h-8 rounded flex items-center justify-center transition-colors ${activeView === 'favorites'
+              ? 'bg-[#2a2a2a] text-white'
+              : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
+              }`}
             title="Marcadores / Favoritos"
           >
             <Bookmark className="w-4 h-4" />
@@ -141,11 +142,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Graph View (D3) */}
           <button
             onClick={() => setActiveView('graph')}
-            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${
-              activeView === 'graph'
-                ? 'bg-[#2a2a2a] text-purple-400'
-                : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
-            }`}
+            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${activeView === 'graph'
+              ? 'bg-[#2a2a2a] text-purple-400'
+              : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
+              }`}
             title="Vista de Grafo (Ctrl+G)"
           >
             <Network className="w-4 h-4" />
@@ -156,11 +156,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Calculators */}
           <button
             onClick={() => setActiveView('matrix-calculator')}
-            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${
-              activeView === 'matrix-calculator'
-                ? 'bg-[#2a2a2a] text-white'
-                : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
-            }`}
+            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${activeView === 'matrix-calculator'
+              ? 'bg-[#2a2a2a] text-white'
+              : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
+              }`}
             title="Calculadora Matricial"
           >
             <Grid className="w-4 h-4" />
@@ -168,11 +167,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={() => setActiveView('formula-evaluator')}
-            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${
-              activeView === 'formula-evaluator'
-                ? 'bg-[#2a2a2a] text-white'
-                : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
-            }`}
+            className={`w-8 h-8 rounded flex items-center justify-center transition-colors ${activeView === 'formula-evaluator'
+              ? 'bg-[#2a2a2a] text-white'
+              : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#202020]'
+              }`}
             title="Banco de Fórmulas"
           >
             <Calculator className="w-4 h-4" />
@@ -240,11 +238,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center justify-between group rounded hover:bg-[#242424] pr-1">
               <button
                 onClick={() => setActiveView('my-notes')}
-                className={`flex-1 flex items-center gap-1.5 px-2 py-1.5 text-left transition-colors text-[13px] min-w-0 font-medium ${
-                  activeView === 'my-notes'
-                    ? 'text-purple-300 font-semibold'
-                    : 'text-[#e0e0e0] hover:text-white'
-                }`}
+                className={`flex-1 flex items-center gap-1.5 px-2 py-1.5 text-left transition-colors text-[13px] min-w-0 font-medium ${activeView === 'my-notes'
+                  ? 'text-purple-300 font-semibold'
+                  : 'text-[#e0e0e0] hover:text-white'
+                  }`}
               >
                 <PenTool className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                 <span className="truncate">Mis Notas</span>
@@ -328,11 +325,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 setActiveView('topic');
                               }
                             }}
-                            className={`flex-1 text-left px-2 py-1 rounded text-[13px] transition-colors flex items-center gap-2 min-w-0 ${
-                              isSelected
-                                ? 'bg-[#2c2c2c] text-white font-medium'
-                                : 'text-[#9a9a9a] hover:bg-[#222222] hover:text-[#e0e0e0]'
-                            }`}
+                            className={`flex-1 text-left px-2 py-1 rounded text-[13px] transition-colors flex items-center gap-2 min-w-0 ${isSelected
+                              ? 'bg-[#2c2c2c] text-white font-medium'
+                              : 'text-[#9a9a9a] hover:bg-[#222222] hover:text-[#e0e0e0]'
+                              }`}
                           >
                             {topic.isUserNote ? (
                               <PenTool className="w-3.5 h-3.5 text-purple-400 shrink-0" />
@@ -382,12 +378,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Vault Profile Footer with LibreMath branding */}
         <div className="p-2 border-t border-[#242424] flex items-center justify-between text-[#888888] bg-[#161616]">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-[#2a2a2a] flex items-center justify-center text-purple-400">
-              <User className="w-3 h-3" />
+            <div className="w-5 h-5 rounded-full bg-[#2a2a2a] flex items-center justify-center p-0.5 overflow-hidden">
+              <img src="/app-icon.png" alt="LibreMath" className="w-full h-full object-contain" />
             </div>
-            <span className="text-[11px] font-medium text-[#aaaaaa]">Ale Obsidian</span>
+            <span className="text-[11px] font-medium text-[#aaaaaa]">LibreMath</span>
           </div>
-          <span className="text-[10px] font-mono text-purple-400/90 font-semibold">LibreMath</span>
+          <span className="text-[10px] font-mono text-purple-400/90 font-semibold">UTN</span>
         </div>
       </aside>
     </div>

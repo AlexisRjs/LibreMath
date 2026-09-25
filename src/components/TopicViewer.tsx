@@ -65,6 +65,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
       unit: topic.unit,
       moduleName: topic.moduleName,
       markdownContent: topic.content,
+      isUserNote: topic.isUserNote,
     });
   };
 

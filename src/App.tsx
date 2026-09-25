@@ -450,7 +450,8 @@ export function App() {
 
         {/* Right Side: Windows Window Controls */}
         <div className="flex items-center gap-2 text-[#888888] shrink-0">
-          <div className="hidden sm:flex items-center gap-1 text-[11px] font-mono text-[#666666] mr-3">
+          <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-[#888888] mr-3">
+            <img src="/app-icon.png" alt="LibreMath" className="w-3.5 h-3.5 object-contain opacity-90" />
             <span>LibreMath</span>
           </div>
           <button className="p-1.5 hover:bg-[#262626] rounded text-[#888888] hover:text-[#cccccc]">
