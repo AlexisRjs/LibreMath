@@ -39,6 +39,7 @@ export interface Topic {
   variables: VariableDefinition[];
   formulas: FormulaItem[];
   content: string; // Markdown body without frontmatter
+  isUserNote?: boolean;
 }
 
 export interface ModuleManifest {
@@ -65,6 +66,7 @@ export interface TopicSummary {
   tags: string[];
   description: string;
   formulaCount?: number;
+  isUserNote?: boolean;
 }
 
 export interface SearchIndexEntry {

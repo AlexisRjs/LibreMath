@@ -125,3 +125,20 @@ IngeData APP/
 ## 📄 Licencia
 
 Desarrollado para la comunidad universitaria y de ingeniería. Libre para uso y estudio.
+
+💻 Cómo Ejecutar la App
+
+Modo Escritorio Nativo (Tauri + Rust):
+bash
+npm run desktop:dev
+
+
+Modo Web (Navegador):
+bash
+npm run dev
+
+
+Generar el Instalador de Escritorio (.exe / .msi de ~4 MB):
+bash
+npm run desktop:build
+

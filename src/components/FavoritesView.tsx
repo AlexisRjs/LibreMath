@@ -67,7 +67,7 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {favoriteFormulas.map(({ formula, topic }) => (
               <div key={formula.id} className="relative group/fav">
                 <FormulaCard

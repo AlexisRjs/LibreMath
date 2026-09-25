@@ -5,15 +5,19 @@ import {
   fetchTopicContent,
   fetchAllTopics,
   subscribeToModuleChanges,
-} from './services/electronBridge';
+  createTopicFile,
+  deleteTopicFile,
+} from './services/desktopBridge';
 import { ModuleManifest, Topic, TopicSummary, FormulaItem, SearchIndexEntry } from './types/modules';
 import { Sidebar, ActiveViewType } from './components/Sidebar';
 import { TopicViewer } from './components/TopicViewer';
 import { CommandPalette } from './components/CommandPalette';
+import { NewNoteModal } from './components/NewNoteModal';
 import { MatrixCalculator } from './components/calculators/MatrixCalculator';
 import { FormulaEvaluator } from './components/calculators/FormulaEvaluator';
 import { FavoritesView } from './components/FavoritesView';
 import { GraphView } from './components/GraphView';
+import { MyNotesCanvas } from './components/MyNotesCanvas';
 import {
   Menu,
   Plus,
@@ -53,6 +57,8 @@ export function App() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isNewNoteModalOpen, setIsNewNoteModalOpen] = useState(false);
+  const [newNoteTargetModuleId, setNewNoteTargetModuleId] = useState<string>('algebra');
 
   // Tabs state matching Obsidian
   const [tabs, setTabs] = useState<TabItem[]>([
@@ -69,7 +75,9 @@ export function App() {
   // Favorites state persisted in localStorage
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('ingedata_favorites');
+      const saved =
+        localStorage.getItem('libremath_favorites') ||
+        localStorage.getItem('ingedata_favorites');
       return saved ? JSON.parse(saved) : ['def-limite', 'matriz-inversa-adjunta', 'segunda-ley-newton'];
     } catch {
       return ['def-limite', 'matriz-inversa-adjunta', 'segunda-ley-newton'];
@@ -80,7 +88,7 @@ export function App() {
     setFavorites(prev => {
       const updated = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
       try {
-        localStorage.setItem('ingedata_favorites', JSON.stringify(updated));
+        localStorage.setItem('libremath_favorites', JSON.stringify(updated));
       } catch (e) {
         console.error(e);
       }
@@ -109,7 +117,7 @@ export function App() {
     loadIndexTree();
 
     const unsub = subscribeToModuleChanges(() => {
-      console.log('[IngeData] Notified by Electron: /modules updated on disk');
+      console.log('[LibreMath] Notified: /modules updated on disk');
       loadIndexTree();
     });
 
@@ -212,6 +220,7 @@ export function App() {
     setActiveView(view);
     const viewTitle = {
       topic: selectedTopic?.title || 'Nota',
+      'my-notes': 'Mis Notas',
       graph: 'Vista de Grafo',
       'matrix-calculator': 'Calculadora Matricial',
       'formula-evaluator': 'Banco de Fórmulas',
@@ -233,6 +242,53 @@ export function App() {
   const handleOpenCalculator = (formula: FormulaItem) => {
     setSelectedFormulaIdForBank(formula.id);
     handleSwitchView('formula-evaluator');
+  };
+
+  const handleOpenNewNoteModal = (moduleId?: string) => {
+    setNewNoteTargetModuleId(moduleId || selectedModuleId || 'algebra');
+    setIsNewNoteModalOpen(true);
+  };
+
+  const handleCreateNote = async (data: {
+    moduleId: string;
+    title: string;
+    slug: string;
+    unit: string;
+    tags: string[];
+    description: string;
+  }) => {
+    const res = await createTopicFile({
+      moduleId: data.moduleId,
+      slug: data.slug,
+      title: data.title,
+      unit: data.unit,
+      description: data.description,
+      tags: data.tags,
+    });
+
+    if (res.success && res.topic) {
+      await loadIndexTree();
+
+      setSelectedModuleId(data.moduleId);
+      setSelectedSlug(data.slug);
+      setSelectedTopic(res.topic);
+      setActiveView('topic');
+
+      const tabId = `tab-note-${data.moduleId}-${data.slug}-${Date.now()}`;
+      setTabs(prev => [
+        ...prev,
+        {
+          id: tabId,
+          title: res.topic!.title,
+          view: 'topic',
+          moduleId: data.moduleId,
+          slug: data.slug,
+        },
+      ]);
+      setActiveTabId(tabId);
+    } else {
+      throw new Error(res.error || 'No se pudo crear la nota');
+    }
   };
 
   const handleNewTab = () => {
@@ -273,6 +329,41 @@ export function App() {
     if (tab.moduleId && tab.slug) {
       setSelectedModuleId(tab.moduleId);
       setSelectedSlug(tab.slug);
+    }
+  };
+
+  // Delete user-created note permanently and synchronize state
+  const handleDeleteNote = async (topicToDelete: Topic | TopicSummary) => {
+    try {
+      await deleteTopicFile(topicToDelete.moduleId, topicToDelete.slug);
+      await loadIndexTree();
+
+      // Close tab if open
+      setTabs(prev => {
+        const filtered = prev.filter(t => t.slug !== topicToDelete.slug);
+        return filtered.length > 0
+          ? filtered
+          : [
+              {
+                id: 'tab-default',
+                title: 'Mis Notas',
+                view: 'my-notes',
+              },
+            ];
+      });
+
+      // If active topic was deleted, switch to another topic or my-notes
+      if (selectedSlug === topicToDelete.slug) {
+        const remaining = topicSummaries.filter(t => t.slug !== topicToDelete.slug);
+        if (remaining.length > 0) {
+          handleSelectTopic(remaining[0]);
+        } else {
+          setSelectedTopic(null);
+          setActiveView('my-notes');
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting topic:', err);
     }
   };
 
@@ -320,6 +411,8 @@ export function App() {
               >
                 {tab.view === 'graph' ? (
                   <Network className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                ) : tab.view === 'my-notes' ? (
+                  <PenTool className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                 ) : tab.view === 'matrix-calculator' ? (
                   <Grid className="w-3.5 h-3.5 text-[#888888] shrink-0" />
                 ) : tab.view === 'formula-evaluator' ? (
@@ -358,7 +451,7 @@ export function App() {
         {/* Right Side: Windows Window Controls */}
         <div className="flex items-center gap-2 text-[#888888] shrink-0">
           <div className="hidden sm:flex items-center gap-1 text-[11px] font-mono text-[#666666] mr-3">
-            <span>IngeData</span>
+            <span>LibreMath</span>
           </div>
           <button className="p-1.5 hover:bg-[#262626] rounded text-[#888888] hover:text-[#cccccc]">
             <Minus className="w-3 h-3" />
@@ -385,6 +478,8 @@ export function App() {
               activeView={activeView}
               setActiveView={handleSwitchView}
               onOpenSearch={() => setIsSearchOpen(true)}
+              onNewNote={handleOpenNewNoteModal}
+              onDeleteNote={handleDeleteNote}
               favoritesCount={favorites.length}
             />
           </div>
@@ -415,6 +510,14 @@ export function App() {
                   setIsSearchOpen(true);
                   setIsMobileSidebarOpen(false);
                 }}
+                onNewNote={moduleId => {
+                  handleOpenNewNoteModal(moduleId);
+                  setIsMobileSidebarOpen(false);
+                }}
+                onDeleteNote={t => {
+                  handleDeleteNote(t);
+                  setIsMobileSidebarOpen(false);
+                }}
                 favoritesCount={favorites.length}
               />
             </div>
@@ -431,7 +534,7 @@ export function App() {
             >
               {isMobileSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
-            <span className="font-semibold text-xs text-[#cccccc]">IngeData</span>
+            <span className="font-semibold text-xs text-[#cccccc]">LibreMath</span>
             <button
               onClick={() => setIsSearchOpen(true)}
               className="px-2 py-1 rounded bg-[#242424] text-xs text-[#aaaaaa]"
@@ -456,7 +559,9 @@ export function App() {
                   onOpenCalculator={handleOpenCalculator}
                   favorites={favorites}
                   onToggleFavorite={toggleFavorite}
+                  onDeleteNote={handleDeleteNote}
                   onTopicSaved={() => {
+                    loadIndexTree();
                     fetchTopicContent(selectedModuleId, selectedSlug).then(fresh => {
                       if (fresh) {
                         setSelectedTopic(fresh);
@@ -469,6 +574,20 @@ export function App() {
                   Selecciona un tema para comenzar
                 </div>
               )
+            )}
+
+            {/* Direct Writing Canvas: Mis Notas */}
+            {activeView === 'my-notes' && (
+              <div className="h-full overflow-hidden bg-[#161122]">
+                <MyNotesCanvas
+                  manifests={manifests}
+                  allTopics={allTopics}
+                  initialTopic={selectedTopic?.isUserNote ? selectedTopic : null}
+                  onTopicCreated={loadIndexTree}
+                  onTopicSelect={handleSelectTopic}
+                  onDeleteNote={handleDeleteNote}
+                />
+              </div>
             )}
 
             {/* Obsidian Graph View (D3.js) */}
@@ -522,7 +641,7 @@ export function App() {
       {/* 3. Authentic Obsidian Bottom Status Bar (matching screenshot) */}
       <footer className="h-6 bg-[#181818] border-t border-[#242424] px-3 flex items-center justify-between text-[11px] text-[#777777] shrink-0">
         <div className="flex items-center gap-2">
-          <span>IngeData Vault</span>
+          <span>LibreMath Vault</span>
         </div>
 
         {/* Right Obsidian status stats */}
@@ -546,6 +665,15 @@ export function App() {
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectResult={handleSelectSearchResult}
+      />
+
+      {/* New Markdown Note Modal */}
+      <NewNoteModal
+        isOpen={isNewNoteModalOpen}
+        onClose={() => setIsNewNoteModalOpen(false)}
+        manifests={manifests}
+        defaultModuleId={newNoteTargetModuleId}
+        onCreateNote={handleCreateNote}
       />
     </div>
   );

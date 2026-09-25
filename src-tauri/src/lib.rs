@@ -45,6 +45,16 @@ fn save_topic(module_id: String, slug: String, raw_content: String) -> Result<()
     Ok(())
 }
 
+#[tauri::command]
+fn delete_topic(module_id: String, slug: String) -> Result<(), String> {
+    let modules_dir = find_modules_dir();
+    let target_file = modules_dir.join(&module_id).join(format!("{}.md", slug));
+    if target_file.exists() {
+        fs::remove_file(target_file).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 fn walk_dir(current_dir: &Path, base_dir: &Path, result: &mut HashMap<String, String>) -> std::io::Result<()> {
     if !current_dir.exists() {
         return Ok(());
@@ -84,6 +94,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_modules_path,
             save_topic,
+            delete_topic,
             read_all_files
         ])
         .run(tauri::generate_context!())

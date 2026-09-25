@@ -4,12 +4,18 @@ import { FormulaCard } from './FormulaCard';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MathRenderer } from './MathRenderer';
 import { NoteEditor } from './NoteEditor';
+import { MyNotesCanvas } from './MyNotesCanvas';
+import { exportTopicToPdf } from '../services/pdfExporter';
 import {
   ChevronLeft,
   ChevronRight,
   Edit3,
   BookOpen,
   MoreHorizontal,
+  FileDown,
+  Copy,
+  Check,
+  Trash2,
 } from 'lucide-react';
 
 interface TopicViewerProps {
@@ -20,6 +26,7 @@ interface TopicViewerProps {
   favorites: string[];
   onToggleFavorite: (formulaId: string) => void;
   onTopicSaved?: () => void;
+  onDeleteNote?: (topic: Topic) => void;
 }
 
 export const TopicViewer: React.FC<TopicViewerProps> = ({
@@ -30,9 +37,50 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
   favorites,
   onToggleFavorite,
   onTopicSaved,
+  onDeleteNote,
 }) => {
+  // If this is a personal / user note, show directly the writing canvas without reading/writing lock!
+  if (topic.isUserNote) {
+    return (
+      <MyNotesCanvas
+        manifests={[]}
+        allTopics={allTopics as any}
+        initialTopic={topic}
+        onTopicCreated={onTopicSaved}
+        onTopicSelect={onSelectTopic}
+        onDeleteNote={onDeleteNote}
+      />
+    );
+  }
+
   const [viewMode, setViewMode] = useState<'reading' | 'editor'>('reading');
   const [activeTab, setActiveTab] = useState<'all' | 'theory' | 'formulas' | 'variables'>('all');
+  const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
+  const [copiedMarkdown, setCopiedMarkdown] = useState(false);
+
+  const handleExportPdf = () => {
+    setIsOptionsMenuOpen(false);
+    exportTopicToPdf({
+      title: topic.title,
+      unit: topic.unit,
+      moduleName: topic.moduleName,
+      markdownContent: topic.content,
+    });
+  };
+
+  const handleCopyMarkdown = () => {
+    navigator.clipboard.writeText(topic.content);
+    setCopiedMarkdown(true);
+    setTimeout(() => setCopiedMarkdown(false), 1500);
+    setIsOptionsMenuOpen(false);
+  };
+
+  const handleDelete = () => {
+    setIsOptionsMenuOpen(false);
+    if (window.confirm(`¿Estás seguro de que deseas eliminar la nota "${topic.title}" definitivamente?`)) {
+      onDeleteNote?.(topic);
+    }
+  };
 
   // Prev / Next topic navigation
   const currentIndex = allTopics.findIndex(
@@ -101,17 +149,69 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
             </span>
           </button>
 
-          <button
-            className="p-1.5 rounded text-[#777777] hover:text-[#cccccc] hover:bg-[#282828] transition-colors"
-            title="Más opciones"
-          >
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setIsOptionsMenuOpen(prev => !prev)}
+              className={`p-1.5 rounded transition-colors ${
+                isOptionsMenuOpen
+                  ? 'bg-[#333333] text-white'
+                  : 'text-[#777777] hover:text-[#cccccc] hover:bg-[#282828]'
+              }`}
+              title="Más opciones"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+
+            {isOptionsMenuOpen && (
+              <div
+                className="absolute right-0 top-full mt-1.5 w-48 bg-[#1e172e] border border-purple-800/60 rounded-xl shadow-2xl shadow-black/80 py-1 z-50 text-xs text-slate-200 animate-in fade-in zoom-in-95 duration-100"
+                onClick={e => e.stopPropagation()}
+              >
+                <button
+                  onClick={handleExportPdf}
+                  className="w-full text-left px-3 py-2 hover:bg-purple-900/40 flex items-center gap-2 text-slate-200 hover:text-white transition-colors"
+                >
+                  <FileDown className="w-4 h-4 text-purple-400" />
+                  <span>Exportar como PDF</span>
+                </button>
+
+                <button
+                  onClick={handleCopyMarkdown}
+                  className="w-full text-left px-3 py-2 hover:bg-purple-900/40 flex items-center gap-2 text-slate-200 hover:text-white transition-colors"
+                >
+                  {copiedMarkdown ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-400" />
+                      <span className="text-emerald-400 font-medium">¡Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 text-[#888888]" />
+                      <span>Copiar Markdown</span>
+                    </>
+                  )}
+                </button>
+
+                {topic.isUserNote && (
+                  <>
+                    <div className="h-[1px] bg-purple-900/40 my-1" />
+                    <button
+                      onClick={handleDelete}
+                      className="w-full text-left px-3 py-2 hover:bg-rose-950/50 flex items-center gap-2 text-rose-300 hover:text-rose-200 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4 text-rose-400" />
+                      <span>Eliminar nota</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* 2. Main Content Canvas */}
-      <div className="flex-1 overflow-y-auto px-6 py-8 sm:px-12 max-w-4xl mx-auto w-full">
+      <div className="flex-1 overflow-y-auto px-6 py-8 sm:px-12 max-w-5xl mx-auto w-full">
         {viewMode === 'editor' ? (
           <div className="h-[700px] w-full">
             <NoteEditor
@@ -206,19 +306,19 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
               </div>
             )}
 
-            {/* SECTION: Formulas Grid */}
+            {/* SECTION: Formulas Grid with Built-In Side-by-Side Calculators */}
             {(activeTab === 'all' || activeTab === 'formulas') && topic.formulas.length > 0 && (
-              <div className="space-y-3 pt-4">
+              <div className="space-y-4 pt-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-[#cccccc] uppercase tracking-wider text-[11px]">
-                    Fórmulas del Tema
+                    Fórmulas del Tema ({topic.formulas.length})
                   </h3>
-                  <span className="text-[11px] font-mono text-[#777777]">
-                    {topic.formulas.length} expresiones
+                  <span className="text-[11px] font-mono text-purple-400">
+                    Calculadora interactiva en cada fórmula
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-4">
                   {topic.formulas.map(formula => (
                     <FormulaCard
                       key={formula.id}
@@ -226,6 +326,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
                       onOpenCalculator={onOpenCalculator}
                       isFavorite={favorites.includes(formula.id)}
                       onToggleFavorite={onToggleFavorite}
+                      defaultCalculatorOpen={true}
                     />
                   ))}
                 </div>

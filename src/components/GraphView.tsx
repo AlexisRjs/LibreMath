@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import { TopicSummary, ModuleManifest } from '../types/modules';
-import { ZoomIn, ZoomOut, RotateCcw, Filter, Network, Search } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Filter, Network, Search, Sliders } from 'lucide-react';
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
@@ -37,6 +37,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModuleFilter, setSelectedModuleFilter] = useState<string>('all');
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
+  const [density, setDensity] = useState<'compact' | 'normal' | 'relaxed'>('compact');
 
   // Palette matching Obsidian Dark Violet theme
   const moduleColors: Record<string, string> = {
@@ -66,7 +67,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
         type: 'module',
         moduleId: m.id,
         moduleName: m.name,
-        radius: 20,
+        radius: 18,
         color: moduleColors[m.id] || '#9333ea',
       });
     });
@@ -88,7 +89,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
         moduleId: t.moduleId,
         moduleName: t.moduleName,
         unit: t.unit,
-        radius: Math.min(14, 7 + (t.formulaCount || 1) * 1.5),
+        radius: Math.min(12, 6 + (t.formulaCount || 1) * 1.2),
         color: baseColor,
         formulaCount: t.formulaCount || 0,
       });
@@ -121,7 +122,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
     return { nodes: nList, links: lList };
   }, [manifests, topics, selectedModuleFilter]);
 
-  // D3 Simulation setup
+  // D3 Simulation setup with closer, tighter spacing
   useEffect(() => {
     if (!svgRef.current) return;
 
@@ -133,8 +134,14 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
     // Defs for glowing filters (Obsidian neon aesthetic)
     const defs = svg.append('defs');
-    const glowFilter = defs.append('filter').attr('id', 'glow').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
-    glowFilter.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'coloredBlur');
+    const glowFilter = defs
+      .append('filter')
+      .attr('id', 'glow')
+      .attr('x', '-50%')
+      .attr('y', '-50%')
+      .attr('width', '200%')
+      .attr('height', '200%');
+    glowFilter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'coloredBlur');
     const feMerge = glowFilter.append('feMerge');
     feMerge.append('feMergeNode').attr('in', 'coloredBlur');
     feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
@@ -142,8 +149,9 @@ export const GraphView: React.FC<GraphViewProps> = ({
     const container = svg.append('g').attr('class', 'graph-container');
 
     // Zoom behavior
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.15, 4])
+    const zoom = d3
+      .zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.2, 5])
       .on('zoom', event => {
         container.attr('transform', event.transform);
       });
@@ -151,19 +159,29 @@ export const GraphView: React.FC<GraphViewProps> = ({
     svg.call(zoom);
     zoomRef.current = zoom;
 
-    // Initial center transform
-    svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8));
+    // Initial center transform (comfortable 0.9 scale)
+    svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.9));
 
-    // Force simulation
-    const simulation = d3.forceSimulation<GraphNode>(nodes)
+    // Balanced distances: close and readable without any overlap
+    const linkDist = density === 'compact' ? 68 : density === 'normal' ? 95 : 140;
+    const subDist = density === 'compact' ? 42 : density === 'normal' ? 62 : 90;
+    const chargeStrength = density === 'compact' ? -85 : density === 'normal' ? -130 : -200;
+    const collideMargin = density === 'compact' ? 14 : density === 'normal' ? 18 : 24;
+
+    // Force simulation configured with strong collision prevention and zero overlap
+    const simulation = d3
+      .forceSimulation<GraphNode>(nodes)
       .force(
         'link',
-        d3.forceLink<GraphNode, GraphLink>(links)
+        d3
+          .forceLink<GraphNode, GraphLink>(links)
           .id(d => d.id)
-          .distance(d => (d.value === 1 ? 90 : 50))
+          .distance(d => (d.value === 1 ? linkDist : subDist))
       )
-      .force('charge', d3.forceManyBody().strength(-120))
-      .force('collide', d3.forceCollide().radius(d => (d as GraphNode).radius + 8))
+      .force('charge', d3.forceManyBody().strength(chargeStrength))
+      .force('collide', d3.forceCollide().radius(d => (d as GraphNode).radius + collideMargin).strength(1.0))
+      .force('x', d3.forceX(0).strength(0.012))
+      .force('y', d3.forceY(0).strength(0.012))
       .force('center', d3.forceCenter(0, 0));
 
     // Links render
@@ -174,8 +192,8 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .data(links)
       .enter()
       .append('line')
-      .attr('stroke', '#3b2064')
-      .attr('stroke-opacity', 0.4)
+      .attr('stroke', '#4c268a')
+      .attr('stroke-opacity', 0.5)
       .attr('stroke-width', d => Math.max(1, d.value * 1.5));
 
     // Nodes container
@@ -188,7 +206,8 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .append('g')
       .attr('class', 'node-group cursor-pointer')
       .call(
-        d3.drag<SVGGElement, GraphNode>()
+        d3
+          .drag<SVGGElement, GraphNode>()
           .on('start', (event, d) => {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
@@ -213,26 +232,25 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .attr('stroke', '#160a2c')
       .attr('stroke-width', 2)
       .attr('filter', d => (d.type === 'module' ? 'url(#glow)' : null))
-      .attr('opacity', 0.9);
+      .attr('opacity', 0.95);
 
     // Node labels
     node
       .append('text')
       .text(d => d.label)
-      .attr('font-size', d => (d.type === 'module' ? '12px' : '9px'))
-      .attr('font-weight', d => (d.type === 'module' ? 'bold' : 'normal'))
-      .attr('fill', d => (d.type === 'module' ? '#f1f5f9' : '#cbd5e1'))
-      .attr('dx', d => d.radius + 4)
+      .attr('font-size', d => (d.type === 'module' ? '11px' : '8.5px'))
+      .attr('font-weight', d => (d.type === 'module' ? 'bold' : '500'))
+      .attr('fill', d => (d.type === 'module' ? '#f8fafc' : '#cbd5e1'))
+      .attr('dx', d => d.radius + 3)
       .attr('dy', '.35em')
       .attr('pointer-events', 'none')
       .attr('font-family', 'ui-sans-serif, system-ui, sans-serif')
-      .attr('opacity', d => (d.type === 'module' ? 1 : 0.8));
+      .attr('opacity', d => (d.type === 'module' ? 1 : 0.85));
 
     // Hover & click events
     node
       .on('mouseover', (_event, d) => {
         setHoveredNode(d);
-        // Highlight connected
         const connectedIds = new Set<string>();
         connectedIds.add(d.id);
         links.forEach(l => {
@@ -249,14 +267,14 @@ export const GraphView: React.FC<GraphViewProps> = ({
           )
           .attr('stroke', l =>
             (l.source as GraphNode).id === d.id || (l.target as GraphNode).id === d.id
-              ? '#a855f7'
-              : '#3b2064'
+              ? '#c084fc'
+              : '#4c268a'
           );
       })
       .on('mouseout', () => {
         setHoveredNode(null);
-        node.attr('opacity', 0.9);
-        link.attr('stroke-opacity', 0.4).attr('stroke', '#3b2064');
+        node.attr('opacity', 0.95);
+        link.attr('stroke-opacity', 0.5).attr('stroke', '#4c268a');
       })
       .on('click', (_event, d) => {
         if (d.type === 'topic') {
@@ -281,7 +299,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
     return () => {
       simulation.stop();
     };
-  }, [nodes, links, topics, onSelectTopic]);
+  }, [nodes, links, topics, onSelectTopic, density]);
 
   const handleZoomIn = () => {
     if (svgRef.current && zoomRef.current) {
@@ -302,72 +320,118 @@ export const GraphView: React.FC<GraphViewProps> = ({
       d3.select(svgRef.current)
         .transition()
         .duration(350)
-        .call(zoomRef.current.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8));
+        .call(
+          zoomRef.current.transform,
+          d3.zoomIdentity.translate(width / 2, height / 2).scale(1.15)
+        );
     }
   };
 
   return (
-    <div className="relative w-full h-full bg-[#1e1e1e] overflow-hidden flex flex-col select-none">
-      {/* Top Floating Bar: Obsidian Graph Filters */}
-      <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2 bg-[#181818]/90 backdrop-blur-md px-3 py-1.5 rounded border border-[#2a2a2a] shadow-lg text-xs">
-        <div className="flex items-center gap-1.5 text-[#cccccc] font-medium">
+    <div className="relative w-full h-full bg-[#181520] overflow-hidden flex flex-col select-none">
+      {/* Top Floating Control Bar */}
+      <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2 bg-[#120e1c]/95 backdrop-blur-md px-3 py-1.5 rounded-lg border border-purple-900/50 shadow-2xl text-xs">
+        <div className="flex items-center gap-1.5 text-slate-200 font-medium">
           <Network className="w-3.5 h-3.5 text-purple-400" />
-          <span>Grafo</span>
+          <span>Grafo de Conocimiento</span>
         </div>
 
-        <span className="text-[#333333]">|</span>
+        <span className="text-purple-900">|</span>
 
         {/* Module Filter */}
         <div className="flex items-center gap-1 text-xs">
-          <Filter className="w-3 h-3 text-[#777777]" />
+          <Filter className="w-3 h-3 text-purple-400/80" />
           <select
             value={selectedModuleFilter}
             onChange={e => setSelectedModuleFilter(e.target.value)}
-            className="bg-[#222222] text-[#cccccc] border border-[#333333] rounded px-2 py-0.5 focus:outline-none"
+            className="bg-[#1c152d] text-slate-200 border border-purple-900/60 rounded px-2 py-0.5 focus:outline-none text-xs"
           >
             <option value="all">Todos los Módulos ({topics.length} temas)</option>
             {manifests.map(m => (
-              <option key={m.id} value={m.id}>
+              <option key={m.id} value={m.id} className="bg-[#161022]">
                 {m.name}
               </option>
             ))}
           </select>
         </div>
 
+        <span className="text-purple-900">|</span>
+
+        {/* Node Spacing / Density toggle */}
+        <div className="flex items-center gap-1 text-[11px] font-mono">
+          <Sliders className="w-3 h-3 text-purple-400" />
+          <span className="text-slate-400">Separación:</span>
+          <button
+            onClick={() => setDensity('compact')}
+            className={`px-1.5 py-0.5 rounded transition-colors ${
+              density === 'compact'
+                ? 'bg-purple-600 text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title="Nodos muy cercanos y agrupados"
+          >
+            Cercana
+          </button>
+          <button
+            onClick={() => setDensity('normal')}
+            className={`px-1.5 py-0.5 rounded transition-colors ${
+              density === 'normal'
+                ? 'bg-purple-600 text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title="Separación estándar"
+          >
+            Media
+          </button>
+          <button
+            onClick={() => setDensity('relaxed')}
+            className={`px-1.5 py-0.5 rounded transition-colors ${
+              density === 'relaxed'
+                ? 'bg-purple-600 text-white font-semibold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title="Mayor dispersión"
+          >
+            Amplia
+          </button>
+        </div>
+
+        <span className="text-purple-900">|</span>
+
         {/* Search inside graph */}
         <div className="relative flex items-center">
-          <Search className="w-3 h-3 text-[#777777] absolute left-2 pointer-events-none" />
+          <Search className="w-3 h-3 text-purple-400 absolute left-2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Buscar..."
+            placeholder="Filtrar nodo..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="pl-6 pr-2 py-0.5 bg-[#222222] text-[#cccccc] text-xs rounded border border-[#333333] w-24 focus:w-36 transition-all focus:outline-none"
+            className="pl-6 pr-2 py-0.5 bg-[#1c152d] text-slate-200 text-xs rounded border border-purple-900/60 w-24 focus:w-36 transition-all focus:outline-none"
           />
         </div>
 
-        <span className="text-[#333333]">|</span>
+        <span className="text-purple-900">|</span>
 
         {/* Zoom Controls */}
         <div className="flex items-center gap-0.5">
           <button
             onClick={handleZoomIn}
-            className="p-1 rounded hover:bg-[#282828] text-[#888888] hover:text-[#cccccc] transition-colors"
+            className="p-1 rounded hover:bg-purple-950/60 text-slate-400 hover:text-white transition-colors"
             title="Acercar (Zoom In)"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleZoomOut}
-            className="p-1 rounded hover:bg-[#282828] text-[#888888] hover:text-[#cccccc] transition-colors"
+            className="p-1 rounded hover:bg-purple-950/60 text-slate-400 hover:text-white transition-colors"
             title="Alejar (Zoom Out)"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleResetZoom}
-            className="p-1 rounded hover:bg-[#282828] text-[#888888] hover:text-[#cccccc] transition-colors"
-            title="Centrar Grafo"
+            className="p-1 rounded hover:bg-purple-950/60 text-slate-400 hover:text-white transition-colors"
+            title="Centrar y acercar"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
@@ -376,14 +440,16 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
       {/* Hover Info Tooltip */}
       {hoveredNode && (
-        <div className="absolute bottom-6 left-4 z-10 bg-[#160d26]/90 backdrop-blur-md p-3 rounded-lg border border-purple-800/50 shadow-2xl text-xs max-w-xs pointer-events-none">
-          <p className="font-bold text-slate-100 text-sm mb-0.5">{hoveredNode.label}</p>
+        <div className="absolute bottom-6 left-4 z-10 bg-[#160d26]/95 backdrop-blur-md p-3.5 rounded-xl border border-purple-800/60 shadow-2xl text-xs max-w-xs pointer-events-none animate-in fade-in duration-150">
+          <p className="font-bold text-white text-sm mb-0.5">{hoveredNode.label}</p>
           <p className="text-purple-300 font-mono text-[11px] mb-1">
             {hoveredNode.moduleName} {hoveredNode.unit ? `• ${hoveredNode.unit}` : ''}
           </p>
           {hoveredNode.type === 'topic' && (
-            <p className="text-slate-400 text-[11px]">
-              {hoveredNode.formulaCount} fórmulas • <span className="text-purple-400">Clic para abrir nota</span>
+            <p className="text-slate-400 text-[11px] flex items-center gap-1.5">
+              <span>{hoveredNode.formulaCount} fórmulas</span>
+              <span className="text-purple-700">•</span>
+              <span className="text-purple-400 font-medium">Clic para abrir nota</span>
             </p>
           )}
         </div>

@@ -47,29 +47,6 @@ function processWikiLinks(text: string): string {
 /**
  * Process Obsidian callouts (> [!NOTE], > [!TIP], > [!WARNING], > [!IMPORTANT], > [!INFO], > [!EXAMPLE])
  */
-function processCallouts(text: string): string {
-  const calloutRegex = /^>\s*\[!(NOTE|TIP|WARNING|IMPORTANT|INFO|EXAMPLE|CAUTION)\]([^\n]*)\n((?:>.*(?:\n|$))*)/gim;
-
-  return text.replace(calloutRegex, (_match, type, title, body) => {
-    const calloutType = type.toUpperCase();
-    const cleanTitle = title.trim() || getDefaultCalloutTitle(calloutType);
-    const cleanBody = body
-      .split('\n')
-      .map((line: string) => line.replace(/^>\s?/, ''))
-      .join('\n');
-
-    return `<div class="obsidian-callout obsidian-callout-${calloutType.toLowerCase()}">
-      <div class="obsidian-callout-header">
-        <span class="obsidian-callout-icon">${getCalloutIcon(calloutType)}</span>
-        <span class="obsidian-callout-title">${cleanTitle}</span>
-      </div>
-      <div class="obsidian-callout-body">
-${cleanBody}
-      </div>
-    </div>\n\n`;
-  });
-}
-
 function getDefaultCalloutTitle(type: string): string {
   switch (type) {
     case 'NOTE':
@@ -130,8 +107,35 @@ export function renderObsidianMarkdown(markdown: string): string {
     return `${prefix}${placeholder}`;
   });
 
-  // 3. Process Obsidian callouts
-  processed = processCallouts(processed);
+  // 3. Process Obsidian callouts into placeholders BEFORE md.render
+  // This guarantees closing </div> tags are never parsed by CommonMark as indented code blocks!
+  const calloutBlocks: string[] = [];
+  const calloutRegex = /^>\s*\[!(NOTE|TIP|WARNING|IMPORTANT|INFO|EXAMPLE|CAUTION)\]([^\n]*)\n((?:>.*(?:\n|$))*)/gim;
+
+  processed = processed.replace(calloutRegex, (_match, type, title, body) => {
+    const calloutType = type.toUpperCase();
+    const cleanTitle = title.trim() || getDefaultCalloutTitle(calloutType);
+    const cleanBody = body
+      .split('\n')
+      .map((line: string) => line.replace(/^>\s?/, ''))
+      .join('\n');
+
+    const placeholder = `@@CALLOUT_BLOCK_${calloutBlocks.length}@@`;
+    const renderedBody = md.render(cleanBody.trim());
+
+    const calloutHtml = `<div class="obsidian-callout obsidian-callout-${calloutType.toLowerCase()}">
+<div class="obsidian-callout-header">
+<span class="obsidian-callout-icon">${getCalloutIcon(calloutType)}</span>
+<span class="obsidian-callout-title">${cleanTitle}</span>
+</div>
+<div class="obsidian-callout-body">
+${renderedBody}
+</div>
+</div>\n\n`;
+
+    calloutBlocks.push(calloutHtml);
+    return placeholder;
+  });
 
   // 4. Process Obsidian internal wiki links
   processed = processWikiLinks(processed);
@@ -139,12 +143,17 @@ export function renderObsidianMarkdown(markdown: string): string {
   // 5. Render via Markdown-it
   let html = md.render(processed);
 
-  // 6. Restore math blocks safely with replacer function
+  // 6. Restore callouts safely with replacer function
+  calloutBlocks.forEach((rendered, i) => {
+    html = html.replace(new RegExp(`@@CALLOUT_BLOCK_${i}@@`, 'g'), () => rendered);
+  });
+
+  // 7. Restore math blocks safely with replacer function
   mathBlocks.forEach((rendered, i) => {
     html = html.replace(new RegExp(`@@MATHBLOCK_${i}@@`, 'g'), () => `<div class="math-display-wrapper my-3 overflow-x-auto">${rendered}</div>`);
   });
 
-  // 7. Restore inline math safely with replacer function
+  // 8. Restore inline math safely with replacer function
   inlineMath.forEach((rendered, i) => {
     html = html.replace(new RegExp(`@@MATHINLINE_${i}@@`, 'g'), () => rendered);
   });

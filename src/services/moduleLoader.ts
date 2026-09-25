@@ -206,6 +206,78 @@ export function loadAllModules(): ParsedModuleData {
     }
   }
 
+  // 3. Process custom / user-created notes from localStorage
+  const customNotes = getStoredCustomNotes();
+  for (const item of customNotes) {
+    const manifest = manifestsMap.get(item.moduleId);
+    const moduleName = manifest ? manifest.name : item.moduleId.toUpperCase();
+    const { metadata, content } = parseFrontmatter(item.rawContent, item.slug);
+
+    const existingIndex = topics.findIndex(
+      t => t.moduleId === item.moduleId && t.slug === item.slug
+    );
+
+    const topic: Topic = {
+      slug: item.slug,
+      moduleId: item.moduleId,
+      moduleName,
+      title: metadata.title || item.slug.replace(/-/g, ' '),
+      unit: metadata.unit || 'Apuntes y Anotaciones',
+      order: metadata.order ?? (existingIndex !== -1 ? topics[existingIndex].order : 100),
+      tags: metadata.tags || ['apuntes'],
+      description: metadata.description || 'Anotaciones personales',
+      variables: metadata.variables || [],
+      formulas: (metadata.formulas || []).map((f, idx) => ({
+        ...f,
+        id: f.id || `${item.slug}-f-${idx}`,
+        topicSlug: item.slug,
+        moduleId: item.moduleId,
+        moduleName,
+      })),
+      content,
+      isUserNote: true,
+    };
+
+    if (existingIndex !== -1) {
+      topics[existingIndex] = topic;
+    } else {
+      topics.push(topic);
+      if (manifest && !manifest.topicSlugs.includes(item.slug)) {
+        manifest.topicSlugs.push(item.slug);
+      }
+    }
+
+    // Index topic
+    searchIndex.push({
+      type: 'topic',
+      id: `topic-${item.moduleId}-${item.slug}`,
+      title: topic.title,
+      subtitle: `${moduleName} • ${topic.unit}`,
+      tags: topic.tags,
+      moduleId: item.moduleId,
+      moduleName,
+      topicSlug: item.slug,
+      unit: topic.unit,
+      variables: topic.variables.map(v => `${v.name} (${v.symbol})`),
+    });
+
+    for (const formula of topic.formulas) {
+      searchIndex.push({
+        type: 'formula',
+        id: `formula-${item.moduleId}-${item.slug}-${formula.id}`,
+        title: formula.name,
+        subtitle: `${moduleName} • ${topic.title}`,
+        latex: formula.latex,
+        tags: [...(formula.tags || []), ...topic.tags],
+        moduleId: item.moduleId,
+        moduleName,
+        topicSlug: item.slug,
+        unit: topic.unit,
+        variables: formula.variables,
+      });
+    }
+  }
+
   // Sort topics by module and order
   topics.sort((a, b) => {
     if (a.moduleId !== b.moduleId) return a.moduleId.localeCompare(b.moduleId);
@@ -221,4 +293,149 @@ export function loadAllModules(): ParsedModuleData {
   };
 
   return cachedData;
+}
+
+export interface CustomNoteRecord {
+  moduleId: string;
+  slug: string;
+  rawContent: string;
+  isUserNote?: boolean;
+}
+
+export function getStoredCustomNotes(): CustomNoteRecord[] {
+  if (typeof window === 'undefined' || !window.localStorage) return [];
+  try {
+    const raw =
+      localStorage.getItem('libremath_custom_notes') ||
+      localStorage.getItem('ingedata_custom_notes');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveStoredCustomNotes(records: CustomNoteRecord[]): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    localStorage.setItem('libremath_custom_notes', JSON.stringify(records));
+  } catch (e) {
+    console.error('Error saving custom notes to localStorage:', e);
+  }
+}
+
+export function invalidateModuleCache(): void {
+  cachedData = null;
+}
+
+export function registerDynamicTopic(
+  moduleId: string,
+  slug: string,
+  rawContent: string,
+  isUserNote = true
+): Topic {
+  const local = loadAllModules();
+  const manifest = local.manifests.find(m => m.id === moduleId);
+  const moduleName = manifest ? manifest.name : moduleId.toUpperCase();
+  const { metadata, content } = parseFrontmatter(rawContent, slug);
+
+  const topic: Topic = {
+    slug,
+    moduleId,
+    moduleName,
+    title: metadata.title || slug.replace(/-/g, ' '),
+    unit: metadata.unit || 'Apuntes y Anotaciones',
+    order: metadata.order ?? 100,
+    tags: metadata.tags || ['apuntes'],
+    description: metadata.description || 'Anotaciones personales',
+    variables: metadata.variables || [],
+    formulas: (metadata.formulas || []).map((f, idx) => ({
+      ...f,
+      id: f.id || `${slug}-f-${idx}`,
+      topicSlug: slug,
+      moduleId,
+      moduleName,
+    })),
+    content,
+    isUserNote,
+  };
+
+  // Update or insert topic in cached topics
+  const existingIdx = local.topics.findIndex(t => t.moduleId === moduleId && t.slug === slug);
+  if (existingIdx !== -1) {
+    local.topics[existingIdx] = topic;
+  } else {
+    local.topics.push(topic);
+    if (manifest && !manifest.topicSlugs.includes(slug)) {
+      manifest.topicSlugs.push(slug);
+    }
+  }
+
+  // Sort again
+  local.topics.sort((a, b) => {
+    if (a.moduleId !== b.moduleId) return a.moduleId.localeCompare(b.moduleId);
+    return a.order - b.order;
+  });
+
+  // Re-index search entry
+  const searchId = `topic-${moduleId}-${slug}`;
+  const existingSearchIdx = local.searchIndex.findIndex(s => s.id === searchId);
+  const searchEntry: SearchIndexEntry = {
+    type: 'topic',
+    id: searchId,
+    title: topic.title,
+    subtitle: `${moduleName} • ${topic.unit}`,
+    tags: topic.tags,
+    moduleId,
+    moduleName,
+    topicSlug: slug,
+    unit: topic.unit,
+    variables: topic.variables.map(v => `${v.name} (${v.symbol})`),
+  };
+
+  if (existingSearchIdx !== -1) {
+    local.searchIndex[existingSearchIdx] = searchEntry;
+  } else {
+    local.searchIndex.push(searchEntry);
+  }
+
+  // Save to persistent localStorage
+  const stored = getStoredCustomNotes();
+  const storedIdx = stored.findIndex(s => s.moduleId === moduleId && s.slug === slug);
+  if (storedIdx !== -1) {
+    stored[storedIdx] = { moduleId, slug, rawContent, isUserNote };
+  } else {
+    stored.push({ moduleId, slug, rawContent, isUserNote });
+  }
+  saveStoredCustomNotes(stored);
+
+  return topic;
+}
+
+export function removeDynamicTopic(moduleId: string, slug: string): boolean {
+  const local = loadAllModules();
+
+  // 1. Remove from cached topics
+  const topicIdx = local.topics.findIndex(t => t.moduleId === moduleId && t.slug === slug);
+  if (topicIdx !== -1) {
+    local.topics.splice(topicIdx, 1);
+  }
+
+  // 2. Remove from search index
+  const searchId = `topic-${moduleId}-${slug}`;
+  local.searchIndex = local.searchIndex.filter(
+    s => s.id !== searchId && !s.id.startsWith(`formula-${moduleId}-${slug}-`)
+  );
+
+  // 3. Remove from manifest topicSlugs if present
+  const manifest = local.manifests.find(m => m.id === moduleId);
+  if (manifest) {
+    manifest.topicSlugs = manifest.topicSlugs.filter(s => s !== slug);
+  }
+
+  // 4. Remove from persistent localStorage
+  const stored = getStoredCustomNotes();
+  const nextStored = stored.filter(s => !(s.moduleId === moduleId && s.slug === slug));
+  saveStoredCustomNotes(nextStored);
+
+  return true;
 }

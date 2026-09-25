@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "IngeData",
+  "productName": "LibreMath",
   "version": "1.0.0",
-  "identifier": "com.ingedata.app",
+  "identifier": "com.libremath.app",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "IngeData - La navaja suiza para ingenieros",
+        "title": "LibreMath - La navaja suiza para estudiantes de ingeniería",
         "width": 1280,
         "height": 820,
         "minWidth": 960,
