@@ -98,16 +98,16 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#1e1e1e] text-[#dcddde] overflow-hidden">
-      {/* 1. Obsidian Top Breadcrumb Bar matching screenshot */}
-      <div className="h-10 px-4 border-b border-[#282828] bg-[#1a1a1a] flex items-center justify-between shrink-0 select-none text-xs">
+    <div className="flex flex-col h-full bg-[#09090b] text-white overflow-hidden">
+      {/* 1. Modern Minimalist Top Breadcrumb Bar */}
+      <div className="h-10 px-4 border-b border-zinc-800 bg-black flex items-center justify-between shrink-0 select-none text-xs">
         {/* Navigation Arrows & Breadcrumb Path */}
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex items-center gap-1 text-[#777777]">
+          <div className="flex items-center gap-1 text-zinc-400">
             <button
               onClick={() => prevTopic && onSelectTopic(prevTopic)}
               disabled={!prevTopic}
-              className="p-1 rounded hover:bg-[#282828] hover:text-[#cccccc] disabled:opacity-30 disabled:hover:bg-transparent"
+              className="p-1 rounded hover:bg-zinc-800 hover:text-white disabled:opacity-20 disabled:hover:bg-transparent transition-colors"
               title="Tema anterior"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -115,28 +115,28 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
             <button
               onClick={() => nextTopic && onSelectTopic(nextTopic)}
               disabled={!nextTopic}
-              className="p-1 rounded hover:bg-[#282828] hover:text-[#cccccc] disabled:opacity-30 disabled:hover:bg-transparent"
+              className="p-1 rounded hover:bg-zinc-800 hover:text-white disabled:opacity-20 disabled:hover:bg-transparent transition-colors"
               title="Tema siguiente"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 text-[#8e8e8e] truncate text-[13px]">
-            <span className="hover:text-[#bbbbbb] transition-colors">{topic.moduleName}</span>
-            <span className="text-[#555555]">/</span>
-            <span className="text-[#cccccc] font-medium truncate">{topic.title}</span>
+          <div className="flex items-center gap-1.5 text-zinc-400 truncate text-[13px]">
+            <span className="hover:text-white transition-colors">{topic.moduleName}</span>
+            <span className="text-zinc-600">/</span>
+            <span className="text-white font-semibold truncate">{topic.title}</span>
           </div>
         </div>
 
         {/* Right Tools: Reading/Edit Mode & Options */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setViewMode(prev => (prev === 'reading' ? 'editor' : 'reading'))}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs transition-all ${
               viewMode === 'editor'
-                ? 'bg-[#2f2f2f] text-purple-400 font-medium'
-                : 'text-[#888888] hover:text-[#dcddde] hover:bg-[#282828]'
+                ? 'bg-[#7c3aed] text-white font-semibold shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
             title={viewMode === 'reading' ? 'Cambiar a modo edición' : 'Cambiar a modo lectura'}
           >
@@ -153,10 +153,10 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
           <div className="relative">
             <button
               onClick={() => setIsOptionsMenuOpen(prev => !prev)}
-              className={`p-1.5 rounded transition-colors ${
+              className={`p-1.5 rounded-md transition-colors ${
                 isOptionsMenuOpen
-                  ? 'bg-[#333333] text-white'
-                  : 'text-[#777777] hover:text-[#cccccc] hover:bg-[#282828]'
+                  ? 'bg-zinc-800 text-white'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
               }`}
               title="Más opciones"
             >
@@ -165,20 +165,20 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
 
             {isOptionsMenuOpen && (
               <div
-                className="absolute right-0 top-full mt-1.5 w-48 bg-[#1e172e] border border-purple-800/60 rounded-xl shadow-2xl shadow-black/80 py-1 z-50 text-xs text-slate-200 animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 top-full mt-1.5 w-48 bg-[#0e0e12] border border-zinc-800 rounded-xl shadow-2xl shadow-black py-1.5 z-50 text-xs text-zinc-200 animate-in fade-in zoom-in-95 duration-100"
                 onClick={e => e.stopPropagation()}
               >
                 <button
                   onClick={handleExportPdf}
-                  className="w-full text-left px-3 py-2 hover:bg-purple-900/40 flex items-center gap-2 text-slate-200 hover:text-white transition-colors"
+                  className="w-full text-left px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-zinc-200 hover:text-white transition-colors"
                 >
-                  <FileDown className="w-4 h-4 text-purple-400" />
+                  <FileDown className="w-4 h-4 text-[#a78bfa]" />
                   <span>Exportar como PDF</span>
                 </button>
 
                 <button
                   onClick={handleCopyMarkdown}
-                  className="w-full text-left px-3 py-2 hover:bg-purple-900/40 flex items-center gap-2 text-slate-200 hover:text-white transition-colors"
+                  className="w-full text-left px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-zinc-200 hover:text-white transition-colors"
                 >
                   {copiedMarkdown ? (
                     <>
@@ -187,7 +187,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
                     </>
                   ) : (
                     <>
-                      <Copy className="w-4 h-4 text-[#888888]" />
+                      <Copy className="w-4 h-4 text-zinc-400" />
                       <span>Copiar Markdown</span>
                     </>
                   )}
@@ -195,7 +195,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
 
                 {topic.isUserNote && (
                   <>
-                    <div className="h-[1px] bg-purple-900/40 my-1" />
+                    <div className="h-[1px] bg-zinc-800 my-1" />
                     <button
                       onClick={handleDelete}
                       className="w-full text-left px-3 py-2 hover:bg-rose-950/50 flex items-center gap-2 text-rose-300 hover:text-rose-200 transition-colors"
@@ -225,23 +225,23 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
         ) : (
           <div className="space-y-6">
             {/* Note Title */}
-            <div className="space-y-2 pb-4 border-b border-[#282828]">
-              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+            <div className="space-y-3 pb-5 border-b border-zinc-800">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
                 {topic.title}
               </h1>
 
               {topic.description && (
-                <p className="text-sm text-[#999999] leading-relaxed pt-1">
+                <p className="text-sm text-zinc-400 leading-relaxed">
                   {topic.description}
                 </p>
               )}
 
-              {/* Obsidian Tags */}
-              <div className="flex flex-wrap gap-1.5 pt-2">
+              {/* Minimalist Tags */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {topic.tags.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 rounded text-[11px] font-mono bg-[#252525] text-[#9a9a9a] border border-[#303030]"
+                    className="px-2 py-0.5 rounded-md text-[11px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-[#7c3aed]/50 transition-colors"
                   >
                     #{tag}
                   </span>
@@ -249,24 +249,24 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
               </div>
             </div>
 
-            {/* View Filter Tabs (Minimalist Obsidian Pills) */}
-            <div className="flex items-center gap-1 p-0.5 rounded bg-[#181818] border border-[#282828] w-fit text-xs">
+            {/* View Filter Tabs (Modern Flat Evolution Segmented Control) */}
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-black border border-zinc-800 w-fit text-xs">
               <button
                 onClick={() => setActiveTab('all')}
-                className={`px-3 py-1 rounded transition-colors ${
+                className={`px-3 py-1 rounded-md transition-all font-medium ${
                   activeTab === 'all'
-                    ? 'bg-[#2a2a2a] text-white font-medium shadow-sm'
-                    : 'text-[#888888] hover:text-[#cccccc]'
+                    ? 'bg-white text-black shadow-xs font-semibold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Todo
               </button>
               <button
                 onClick={() => setActiveTab('theory')}
-                className={`px-3 py-1 rounded transition-colors ${
+                className={`px-3 py-1 rounded-md transition-all font-medium ${
                   activeTab === 'theory'
-                    ? 'bg-[#2a2a2a] text-white font-medium shadow-sm'
-                    : 'text-[#888888] hover:text-[#cccccc]'
+                    ? 'bg-white text-black shadow-xs font-semibold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Teoría
@@ -274,10 +274,10 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
               {topic.formulas.length > 0 && (
                 <button
                   onClick={() => setActiveTab('formulas')}
-                  className={`px-3 py-1 rounded transition-colors ${
+                  className={`px-3 py-1 rounded-md transition-all font-medium ${
                     activeTab === 'formulas'
-                      ? 'bg-[#2a2a2a] text-white font-medium shadow-sm'
-                      : 'text-[#888888] hover:text-[#cccccc]'
+                      ? 'bg-white text-black shadow-xs font-semibold'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   Fórmulas ({topic.formulas.length})
@@ -286,10 +286,10 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
               {topic.variables.length > 0 && (
                 <button
                   onClick={() => setActiveTab('variables')}
-                  className={`px-3 py-1 rounded transition-colors ${
+                  className={`px-3 py-1 rounded-md transition-all font-medium ${
                     activeTab === 'variables'
-                      ? 'bg-[#2a2a2a] text-white font-medium shadow-sm'
-                      : 'text-[#888888] hover:text-[#cccccc]'
+                      ? 'bg-white text-black shadow-xs font-semibold'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   Variables ({topic.variables.length})
@@ -307,15 +307,18 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
               </div>
             )}
 
-            {/* SECTION: Formulas Grid with Built-In Side-by-Side Calculators */}
+            {/* SECTION: Formulas Grid */}
             {(activeTab === 'all' || activeTab === 'formulas') && topic.formulas.length > 0 && (
               <div className="space-y-4 pt-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-[#cccccc] uppercase tracking-wider text-[11px]">
-                    Fórmulas del Tema ({topic.formulas.length})
-                  </h3>
-                  <span className="text-[11px] font-mono text-purple-400">
-                    Calculadora interactiva en cada fórmula
+                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Fórmulas del Tema ({topic.formulas.length})
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-mono text-[#a78bfa]">
+                    LaTeX KaTeX
                   </span>
                 </div>
 
@@ -327,7 +330,6 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
                       onOpenCalculator={onOpenCalculator}
                       isFavorite={favorites.includes(formula.id)}
                       onToggleFavorite={onToggleFavorite}
-                      defaultCalculatorOpen={true}
                     />
                   ))}
                 </div>
@@ -337,29 +339,32 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
             {/* SECTION: Variables Table */}
             {(activeTab === 'all' || activeTab === 'variables') && topic.variables.length > 0 && (
               <div className="space-y-3 pt-4">
-                <h3 className="text-sm font-semibold text-[#cccccc] uppercase tracking-wider text-[11px]">
-                  Variables y Parámetros
-                </h3>
+                <div className="flex items-center gap-2 border-b border-zinc-800/80 pb-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Variables y Parámetros
+                  </h3>
+                </div>
 
-                <div className="overflow-x-auto rounded border border-[#2c2c2c] bg-[#191919]">
+                <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-[#0e0e12]">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="border-b border-[#282828] bg-[#1e1e1e] text-[11px] font-mono uppercase text-[#888888]">
-                        <th className="p-2.5">Símbolo</th>
-                        <th className="p-2.5">Concepto</th>
-                        <th className="p-2.5">Unidad SI</th>
-                        <th className="p-2.5">Descripción</th>
+                      <tr className="border-b border-zinc-800 bg-black text-[11px] font-mono uppercase text-zinc-400">
+                        <th className="p-3">Símbolo</th>
+                        <th className="p-3">Concepto</th>
+                        <th className="p-3">Unidad SI</th>
+                        <th className="p-3">Descripción</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#262626] font-mono text-xs">
+                    <tbody className="divide-y divide-zinc-800/80 font-mono text-xs">
                       {topic.variables.map((v, vIdx) => (
-                        <tr key={vIdx} className="hover:bg-[#202020] transition-colors">
-                          <td className="p-2.5 font-semibold text-purple-300">
+                        <tr key={vIdx} className="hover:bg-zinc-900/60 transition-colors">
+                          <td className="p-3 font-semibold text-[#c084fc]">
                             <MathRenderer math={v.symbol} block={false} />
                           </td>
-                          <td className="p-2.5 font-sans text-[#dddddd]">{v.name}</td>
-                          <td className="p-2.5 text-emerald-400">{v.unit || '—'}</td>
-                          <td className="p-2.5 font-sans text-[#999999]">
+                          <td className="p-3 font-sans text-white font-medium">{v.name}</td>
+                          <td className="p-3 text-emerald-400 font-semibold">{v.unit || '—'}</td>
+                          <td className="p-3 font-sans text-zinc-400">
                             {v.description || '—'}
                           </td>
                         </tr>

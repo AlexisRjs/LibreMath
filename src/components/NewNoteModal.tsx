@@ -113,29 +113,29 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
   const activeManifest = manifests.find(m => m.id === selectedModule);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="w-full max-w-md bg-[#161224] border border-purple-900/50 rounded-xl shadow-2xl overflow-hidden flex flex-col text-slate-200 text-xs"
+        className="w-full max-w-md bg-[#0e0e12] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-white text-xs"
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 bg-[#1b152d] border-b border-purple-900/40">
+        <div className="flex items-center justify-between px-5 py-4 bg-black border-b border-zinc-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-purple-950/80 border border-purple-800/60 flex items-center justify-center text-purple-400">
+            <div className="w-8 h-8 rounded-lg bg-[#7c3aed]/10 border border-[#7c3aed]/30 flex items-center justify-center text-[#a78bfa]">
               <FilePlus className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white tracking-wide">
+              <h2 className="text-sm font-bold text-white tracking-tight">
                 Nueva Nota Markdown
               </h2>
-              <p className="text-[11px] text-purple-300/70">
+              <p className="text-[11px] text-zinc-400">
                 Se indexará automáticamente en el grafo de la materia
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -144,7 +144,7 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
-            <div className="p-2.5 rounded bg-rose-950/60 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
+            <div className="p-2.5 rounded-lg bg-rose-950/60 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
               <span>⚠️</span>
               <span>{error}</span>
             </div>
@@ -152,32 +152,32 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
 
           {/* Module / Subject Selector */}
           <div>
-            <label className="block text-[11px] font-medium text-purple-200/90 mb-1.5 flex items-center gap-1.5">
-              <Folder className="w-3.5 h-3.5 text-purple-400" />
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
+              <Folder className="w-3.5 h-3.5 text-[#a78bfa]" />
               <span>Materia / Asignatura de Destino</span>
             </label>
             <select
               value={selectedModule}
               onChange={e => setSelectedModule(e.target.value)}
-              className="w-full bg-[#1e1733] border border-purple-900/60 rounded-lg px-3 py-2 text-slate-100 focus:outline-hidden focus:border-purple-500 transition-colors text-xs cursor-pointer"
+              className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:outline-hidden focus:border-[#7c3aed] transition-colors text-xs cursor-pointer"
             >
               {manifests.map(m => (
-                <option key={m.id} value={m.id} className="bg-[#1b152d]">
+                <option key={m.id} value={m.id} className="bg-[#0e0e12]">
                   {m.name} ({m.id})
                 </option>
               ))}
             </select>
             {activeManifest && (
-              <span className="inline-block mt-1 text-[10px] text-purple-400/80 font-mono">
-                Carpeta física: /modules/{activeManifest.id}/
+              <span className="inline-block mt-1 text-[10px] text-zinc-400 font-mono">
+                Carpeta física: <span className="text-[#a78bfa]">/modules/{activeManifest.id}/</span>
               </span>
             )}
           </div>
 
           {/* Note Title */}
           <div>
-            <label className="block text-[11px] font-medium text-purple-200/90 mb-1.5 flex items-center gap-1.5">
-              <AlignLeft className="w-3.5 h-3.5 text-purple-400" />
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
+              <AlignLeft className="w-3.5 h-3.5 text-[#a78bfa]" />
               <span>Título de la Nota</span>
             </label>
             <input
@@ -186,25 +186,25 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
               value={title}
               onChange={e => handleTitleChange(e.target.value)}
               placeholder="Ej: Teorema de Gauss y Aplicaciones"
-              className="w-full bg-[#1e1733] border border-purple-900/60 rounded-lg px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:outline-hidden focus:border-purple-500 transition-colors text-xs"
+              className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-hidden focus:border-[#7c3aed] transition-colors text-xs"
             />
           </div>
 
           {/* File Slug */}
           <div>
-            <label className="block text-[11px] font-medium text-purple-200/90 mb-1.5 flex items-center gap-1.5">
-              <span className="font-mono text-purple-400 text-xs">#</span>
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
+              <span className="font-mono text-[#a78bfa] text-xs">#</span>
               <span>Nombre de archivo (.md)</span>
             </label>
-            <div className="flex items-center bg-[#1e1733] border border-purple-900/60 rounded-lg overflow-hidden focus-within:border-purple-500">
+            <div className="flex items-center bg-black border border-zinc-800 rounded-lg overflow-hidden focus-within:border-[#7c3aed]">
               <input
                 type="text"
                 value={slug}
                 onChange={e => setSlug(e.target.value)}
                 placeholder="teorema-de-gauss"
-                className="w-full bg-transparent px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:outline-hidden text-xs font-mono"
+                className="w-full bg-transparent px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-hidden text-xs font-mono"
               />
-              <span className="px-2.5 py-2 text-[11px] text-purple-400/80 font-mono bg-purple-950/40 border-l border-purple-900/40">
+              <span className="px-2.5 py-2 text-[11px] text-zinc-400 font-mono bg-zinc-900 border-l border-zinc-800">
                 .md
               </span>
             </div>
@@ -212,8 +212,8 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
 
           {/* Unit / Unidad */}
           <div>
-            <label className="block text-[11px] font-medium text-purple-200/90 mb-1.5 flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-purple-400" />
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-[#a78bfa]" />
               <span>Unidad temática / Categoría</span>
             </label>
             <input
@@ -221,14 +221,14 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
               value={unit}
               onChange={e => setUnit(e.target.value)}
               placeholder="Ej: Electrostática o Apuntes Personales"
-              className="w-full bg-[#1e1733] border border-purple-900/60 rounded-lg px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:outline-hidden focus:border-purple-500 transition-colors text-xs"
+              className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-hidden focus:border-[#7c3aed] transition-colors text-xs"
             />
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-[11px] font-medium text-purple-200/90 mb-1.5 flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5 text-purple-400" />
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-[#a78bfa]" />
               <span>Etiquetas (separadas por coma)</span>
             </label>
             <input
@@ -236,24 +236,24 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
               value={tagsInput}
               onChange={e => setTagsInput(e.target.value)}
               placeholder="apuntes, formulas, teoria"
-              className="w-full bg-[#1e1733] border border-purple-900/60 rounded-lg px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:outline-hidden focus:border-purple-500 transition-colors text-xs"
+              className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-hidden focus:border-[#7c3aed] transition-colors text-xs"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-3 border-t border-purple-900/40 flex items-center justify-end gap-2.5">
+          <div className="pt-4 border-t border-zinc-800 flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-3.5 py-1.5 rounded-lg border border-purple-900/40 text-slate-400 hover:text-white hover:bg-white/5 transition-colors text-xs"
+              className="px-3.5 py-2 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors text-xs cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !title.trim() || !slug.trim()}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium shadow-md shadow-purple-950/50 disabled:opacity-50 transition-all text-xs"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#7c3aed] hover:bg-[#8b5cf6] text-white font-semibold shadow-xs disabled:opacity-50 transition-all text-xs cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>{isSubmitting ? 'Creando nota...' : 'Crear e Indexar Nota'}</span>

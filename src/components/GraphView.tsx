@@ -39,10 +39,10 @@ export const GraphView: React.FC<GraphViewProps> = ({
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
   const [density, setDensity] = useState<'compact' | 'normal' | 'relaxed'>('compact');
 
-  // Palette matching Obsidian Dark Violet theme
+  // Palette matching Clean Flat Modernism & UPL Violet
   const moduleColors: Record<string, string> = {
-    am1: '#8b5cf6', // Violet
-    algebra: '#a855f7', // Purple
+    am1: '#7c3aed', // UPL Violet
+    algebra: '#8b5cf6', // Violet Light
     'fisica-1': '#10b981', // Emerald
     am2: '#6366f1', // Indigo
     'fisica-2': '#f59e0b', // Amber
@@ -68,7 +68,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
         moduleId: m.id,
         moduleName: m.name,
         radius: 18,
-        color: moduleColors[m.id] || '#9333ea',
+        color: moduleColors[m.id] || '#7c3aed',
       });
     });
 
@@ -80,7 +80,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
     activeTopics.forEach(t => {
       const nodeId = `topic-${t.moduleId}-${t.slug}`;
-      const baseColor = moduleColors[t.moduleId] || '#a855f7';
+      const baseColor = moduleColors[t.moduleId] || '#8b5cf6';
 
       nList.push({
         id: nodeId,
@@ -132,7 +132,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    // Defs for glowing filters (Obsidian neon aesthetic)
+    // Defs for glowing filters
     const defs = svg.append('defs');
     const glowFilter = defs
       .append('filter')
@@ -192,8 +192,8 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .data(links)
       .enter()
       .append('line')
-      .attr('stroke', '#4c268a')
-      .attr('stroke-opacity', 0.5)
+      .attr('stroke', '#27272a')
+      .attr('stroke-opacity', 0.6)
       .attr('stroke-width', d => Math.max(1, d.value * 1.5));
 
     // Nodes container
@@ -229,7 +229,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .append('circle')
       .attr('r', d => d.radius)
       .attr('fill', d => d.color)
-      .attr('stroke', '#160a2c')
+      .attr('stroke', '#09090b')
       .attr('stroke-width', 2)
       .attr('filter', d => (d.type === 'module' ? 'url(#glow)' : null))
       .attr('opacity', 0.95);
@@ -240,7 +240,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .text(d => d.label)
       .attr('font-size', d => (d.type === 'module' ? '11px' : '8.5px'))
       .attr('font-weight', d => (d.type === 'module' ? 'bold' : '500'))
-      .attr('fill', d => (d.type === 'module' ? '#f8fafc' : '#cbd5e1'))
+      .attr('fill', d => (d.type === 'module' ? '#ffffff' : '#e4e4e7'))
       .attr('dx', d => d.radius + 3)
       .attr('dy', '.35em')
       .attr('pointer-events', 'none')
@@ -263,18 +263,18 @@ export const GraphView: React.FC<GraphViewProps> = ({
         node.attr('opacity', o => (connectedIds.has(o.id) ? 1 : 0.15));
         link
           .attr('stroke-opacity', l =>
-            (l.source as GraphNode).id === d.id || (l.target as GraphNode).id === d.id ? 0.9 : 0.05
+            (l.source as GraphNode).id === d.id || (l.target as GraphNode).id === d.id ? 0.95 : 0.05
           )
           .attr('stroke', l =>
             (l.source as GraphNode).id === d.id || (l.target as GraphNode).id === d.id
-              ? '#c084fc'
-              : '#4c268a'
+              ? '#a78bfa'
+              : '#27272a'
           );
       })
       .on('mouseout', () => {
         setHoveredNode(null);
         node.attr('opacity', 0.95);
-        link.attr('stroke-opacity', 0.5).attr('stroke', '#4c268a');
+        link.attr('stroke-opacity', 0.6).attr('stroke', '#27272a');
       })
       .on('click', (_event, d) => {
         if (d.type === 'topic') {
@@ -328,45 +328,45 @@ export const GraphView: React.FC<GraphViewProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full bg-[#181520] overflow-hidden flex flex-col select-none">
+    <div className="relative w-full h-full bg-[#09090b] overflow-hidden flex flex-col select-none">
       {/* Top Floating Control Bar */}
-      <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2 bg-[#120e1c]/95 backdrop-blur-md px-3 py-1.5 rounded-lg border border-purple-900/50 shadow-2xl text-xs">
-        <div className="flex items-center gap-1.5 text-slate-200 font-medium">
-          <Network className="w-3.5 h-3.5 text-purple-400" />
+      <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2 bg-[#0e0e12]/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-zinc-800 shadow-2xl text-xs text-white">
+        <div className="flex items-center gap-1.5 font-bold tracking-tight">
+          <Network className="w-3.5 h-3.5 text-[#a78bfa]" />
           <span>Grafo de Conocimiento</span>
         </div>
 
-        <span className="text-purple-900">|</span>
+        <span className="text-zinc-700">|</span>
 
         {/* Module Filter */}
         <div className="flex items-center gap-1 text-xs">
-          <Filter className="w-3 h-3 text-purple-400/80" />
+          <Filter className="w-3 h-3 text-zinc-400" />
           <select
             value={selectedModuleFilter}
             onChange={e => setSelectedModuleFilter(e.target.value)}
-            className="bg-[#1c152d] text-slate-200 border border-purple-900/60 rounded px-2 py-0.5 focus:outline-none text-xs"
+            className="bg-black text-white border border-zinc-800 rounded px-2 py-0.5 focus:outline-hidden focus:border-[#7c3aed] text-xs cursor-pointer"
           >
             <option value="all">Todos los Módulos ({topics.length} temas)</option>
             {manifests.map(m => (
-              <option key={m.id} value={m.id} className="bg-[#161022]">
+              <option key={m.id} value={m.id} className="bg-[#0e0e12]">
                 {m.name}
               </option>
             ))}
           </select>
         </div>
 
-        <span className="text-purple-900">|</span>
+        <span className="text-zinc-700">|</span>
 
         {/* Node Spacing / Density toggle */}
         <div className="flex items-center gap-1 text-[11px] font-mono">
-          <Sliders className="w-3 h-3 text-purple-400" />
-          <span className="text-slate-400">Separación:</span>
+          <Sliders className="w-3 h-3 text-zinc-400" />
+          <span className="text-zinc-400">Separación:</span>
           <button
             onClick={() => setDensity('compact')}
-            className={`px-1.5 py-0.5 rounded transition-colors ${
+            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
               density === 'compact'
-                ? 'bg-purple-600 text-white font-semibold'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-white text-black font-semibold'
+                : 'text-zinc-400 hover:text-white'
             }`}
             title="Nodos muy cercanos y agrupados"
           >
@@ -374,10 +374,10 @@ export const GraphView: React.FC<GraphViewProps> = ({
           </button>
           <button
             onClick={() => setDensity('normal')}
-            className={`px-1.5 py-0.5 rounded transition-colors ${
+            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
               density === 'normal'
-                ? 'bg-purple-600 text-white font-semibold'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-white text-black font-semibold'
+                : 'text-zinc-400 hover:text-white'
             }`}
             title="Separación estándar"
           >
@@ -385,10 +385,10 @@ export const GraphView: React.FC<GraphViewProps> = ({
           </button>
           <button
             onClick={() => setDensity('relaxed')}
-            className={`px-1.5 py-0.5 rounded transition-colors ${
+            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
               density === 'relaxed'
-                ? 'bg-purple-600 text-white font-semibold'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-white text-black font-semibold'
+                : 'text-zinc-400 hover:text-white'
             }`}
             title="Mayor dispersión"
           >
@@ -396,41 +396,41 @@ export const GraphView: React.FC<GraphViewProps> = ({
           </button>
         </div>
 
-        <span className="text-purple-900">|</span>
+        <span className="text-zinc-700">|</span>
 
         {/* Search inside graph */}
         <div className="relative flex items-center">
-          <Search className="w-3 h-3 text-purple-400 absolute left-2 pointer-events-none" />
+          <Search className="w-3 h-3 text-zinc-400 absolute left-2 pointer-events-none" />
           <input
             type="text"
             placeholder="Filtrar nodo..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="pl-6 pr-2 py-0.5 bg-[#1c152d] text-slate-200 text-xs rounded border border-purple-900/60 w-24 focus:w-36 transition-all focus:outline-none"
+            className="pl-6 pr-2 py-0.5 bg-black text-white text-xs rounded border border-zinc-800 w-24 focus:w-36 transition-all focus:outline-hidden focus:border-[#7c3aed] placeholder:text-zinc-500"
           />
         </div>
 
-        <span className="text-purple-900">|</span>
+        <span className="text-zinc-700">|</span>
 
         {/* Zoom Controls */}
         <div className="flex items-center gap-0.5">
           <button
             onClick={handleZoomIn}
-            className="p-1 rounded hover:bg-purple-950/60 text-slate-400 hover:text-white transition-colors"
+            className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
             title="Acercar (Zoom In)"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleZoomOut}
-            className="p-1 rounded hover:bg-purple-950/60 text-slate-400 hover:text-white transition-colors"
+            className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
             title="Alejar (Zoom Out)"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleResetZoom}
-            className="p-1 rounded hover:bg-purple-950/60 text-slate-400 hover:text-white transition-colors"
+            className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
             title="Centrar y acercar"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -440,16 +440,16 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
       {/* Hover Info Tooltip */}
       {hoveredNode && (
-        <div className="absolute bottom-6 left-4 z-10 bg-[#160d26]/95 backdrop-blur-md p-3.5 rounded-xl border border-purple-800/60 shadow-2xl text-xs max-w-xs pointer-events-none animate-in fade-in duration-150">
+        <div className="absolute bottom-6 left-4 z-10 bg-[#0e0e12]/95 backdrop-blur-md p-3.5 rounded-xl border border-zinc-800 shadow-2xl text-xs max-w-xs pointer-events-none animate-in fade-in duration-150">
           <p className="font-bold text-white text-sm mb-0.5">{hoveredNode.label}</p>
-          <p className="text-purple-300 font-mono text-[11px] mb-1">
+          <p className="text-[#a78bfa] font-mono text-[11px] mb-1">
             {hoveredNode.moduleName} {hoveredNode.unit ? `• ${hoveredNode.unit}` : ''}
           </p>
           {hoveredNode.type === 'topic' && (
-            <p className="text-slate-400 text-[11px] flex items-center gap-1.5">
+            <p className="text-zinc-400 text-[11px] flex items-center gap-1.5">
               <span>{hoveredNode.formulaCount} fórmulas</span>
-              <span className="text-purple-700">•</span>
-              <span className="text-purple-400 font-medium">Clic para abrir nota</span>
+              <span className="text-zinc-600">•</span>
+              <span className="text-[#a78bfa] font-medium">Clic para abrir nota</span>
             </p>
           )}
         </div>

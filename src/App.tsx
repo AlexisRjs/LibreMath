@@ -25,7 +25,6 @@ import {
   Loader2,
   Network,
   Grid,
-  Calculator,
   Bookmark,
   FileText,
   PenTool,
@@ -34,6 +33,7 @@ import {
   PanelLeft,
   Minus,
   Square,
+  Sigma,
 } from 'lucide-react';
 
 interface TabItem {
@@ -379,14 +379,14 @@ export function App() {
   }, [selectedTopic?.content]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#1e1e1e] text-[#dcddde] flex-col font-sans select-none">
-      {/* 1. Authentic Obsidian Top Tab Strip */}
-      <header className="h-9 bg-[#141414] border-b border-[#242424] flex items-center justify-between px-2 shrink-0 z-30">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#09090b] text-white flex-col font-sans select-none">
+      {/* 1. Modern Minimalist Tab Strip (Flat Design Evolution) */}
+      <header className="h-9 bg-black border-b border-zinc-800 flex items-center justify-between px-2 shrink-0 z-30">
         {/* Left Side: Sidebar Toggle & Tab Items */}
         <div className="flex items-center h-full gap-1 overflow-x-auto min-w-0">
           <button
             onClick={() => setIsSidebarVisible(prev => !prev)}
-            className="p-1 rounded text-[#888888] hover:text-[#cccccc] hover:bg-[#222222] transition-colors shrink-0 mr-1"
+            className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-colors shrink-0 mr-1"
             title={isSidebarVisible ? 'Ocultar barra lateral' : 'Mostrar barra lateral'}
           >
             {isSidebarVisible ? (
@@ -396,31 +396,31 @@ export function App() {
             )}
           </button>
 
-          {/* Render Obsidian Tabs */}
+          {/* Render Modern Flat Tabs */}
           {tabs.map(tab => {
             const isActive = tab.id === activeTabId;
             return (
               <div
                 key={tab.id}
                 onClick={() => handleSelectTab(tab)}
-                className={`group flex items-center gap-2 h-7 px-3 rounded-t text-xs cursor-pointer border-t border-x transition-colors max-w-[220px] ${
+                className={`group flex items-center gap-2 h-7 px-3 rounded-t-md text-xs cursor-pointer border-t-2 border-x transition-all max-w-[220px] ${
                   isActive
-                    ? 'bg-[#1e1e1e] text-white border-[#2a2a2a] font-medium'
-                    : 'bg-[#161616] text-[#888888] border-transparent hover:bg-[#1b1b1b] hover:text-[#cccccc]'
+                    ? 'bg-[#09090b] text-white border-t-[#7c3aed] border-x-zinc-800 font-semibold shadow-xs'
+                    : 'bg-transparent text-zinc-400 border-transparent hover:bg-zinc-900/60 hover:text-zinc-200'
                 }`}
               >
                 {tab.view === 'graph' ? (
-                  <Network className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                  <Network className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'my-notes' ? (
-                  <PenTool className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                  <PenTool className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'matrix-calculator' ? (
-                  <Grid className="w-3.5 h-3.5 text-[#888888] shrink-0" />
+                  <Grid className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'formula-evaluator' ? (
-                  <Calculator className="w-3.5 h-3.5 text-[#888888] shrink-0" />
+                  <Sigma className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'favorites' ? (
                   <Bookmark className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 ) : (
-                  <FileText className="w-3.5 h-3.5 text-[#888888] shrink-0" />
+                  <FileText className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 )}
 
                 <span className="truncate">{tab.title}</span>
@@ -428,7 +428,7 @@ export function App() {
                 {tabs.length > 1 && (
                   <button
                     onClick={e => handleCloseTab(e, tab.id)}
-                    className="p-0.5 rounded hover:bg-[#333333] text-[#777777] hover:text-white opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                    className="p-0.5 rounded hover:bg-zinc-800 text-zinc-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all ml-1"
                     title="Cerrar pestaña"
                   >
                     <X className="w-3 h-3" />
@@ -441,26 +441,27 @@ export function App() {
           {/* New Tab Button */}
           <button
             onClick={handleNewTab}
-            className="p-1 rounded text-[#777777] hover:text-[#cccccc] hover:bg-[#222222] transition-colors shrink-0"
+            className="p-1 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800/70 transition-colors shrink-0"
             title="Nueva pestaña"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Right Side: Windows Window Controls */}
-        <div className="flex items-center gap-2 text-[#888888] shrink-0">
-          <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-[#888888] mr-3">
-            <img src="/app-icon.png" alt="LibreMath" className="w-3.5 h-3.5 object-contain opacity-90" />
-            <span>LibreMath</span>
+        {/* Right Side: Windows Window Controls & Brand */}
+        <div className="flex items-center gap-2 text-zinc-400 shrink-0">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-white bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-full mr-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
+            <img src="/app-icon.png" alt="IngeData" className="w-3.5 h-3.5 object-contain" />
+            <span className="tracking-tight">IngeData</span>
           </div>
-          <button className="p-1.5 hover:bg-[#262626] rounded text-[#888888] hover:text-[#cccccc]">
+          <button className="p-1.5 hover:bg-zinc-800/80 rounded text-zinc-400 hover:text-white transition-colors">
             <Minus className="w-3 h-3" />
           </button>
-          <button className="p-1.5 hover:bg-[#262626] rounded text-[#888888] hover:text-[#cccccc]">
+          <button className="p-1.5 hover:bg-zinc-800/80 rounded text-zinc-400 hover:text-white transition-colors">
             <Square className="w-2.5 h-2.5" />
           </button>
-          <button className="p-1.5 hover:bg-rose-950/60 rounded text-[#888888] hover:text-rose-400">
+          <button className="p-1.5 hover:bg-rose-950/70 rounded text-zinc-400 hover:text-rose-400 transition-colors">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -526,31 +527,34 @@ export function App() {
         )}
 
         {/* Main Workstation View Area */}
-        <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#1e1e1e]">
+        <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-[#09090b]">
           {/* Mobile Header Bar */}
-          <div className="flex md:hidden items-center justify-between p-2.5 bg-[#181818] border-b border-[#262626]">
+          <div className="flex md:hidden items-center justify-between p-2.5 bg-black border-b border-zinc-800">
             <button
               onClick={() => setIsMobileSidebarOpen(prev => !prev)}
-              className="p-1.5 rounded bg-[#242424] text-[#cccccc]"
+              className="p-1.5 rounded-md bg-zinc-900 border border-zinc-800 text-white"
             >
               {isMobileSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
-            <span className="font-semibold text-xs text-[#cccccc]">LibreMath</span>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
+              <span>IngeData</span>
+            </div>
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="px-2 py-1 rounded bg-[#242424] text-xs text-[#aaaaaa]"
+              className="px-2 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-xs text-zinc-300"
             >
               Ctrl+K
             </button>
           </div>
 
           {/* Dynamic Content Views */}
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 overflow-hidden relative bg-[#09090b]">
             {activeView === 'topic' && (
               isLoadingTopic && !selectedTopic ? (
-                <div className="flex flex-col items-center justify-center h-full space-y-3 text-[#888888]">
-                  <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
-                  <p className="text-xs font-mono">Cargando nota...</p>
+                <div className="flex flex-col items-center justify-center h-full space-y-3 text-zinc-500">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#7c3aed]" />
+                  <p className="text-xs font-mono text-zinc-400">Cargando nota...</p>
                 </div>
               ) : selectedTopic ? (
                 <TopicViewer
@@ -571,7 +575,7 @@ export function App() {
                   }}
                 />
               ) : (
-                <div className="flex items-center justify-center h-full text-[#666666] text-xs">
+                <div className="flex items-center justify-center h-full text-zinc-500 text-xs">
                   Selecciona un tema para comenzar
                 </div>
               )
@@ -579,7 +583,7 @@ export function App() {
 
             {/* Direct Writing Canvas: Mis Notas */}
             {activeView === 'my-notes' && (
-              <div className="h-full overflow-hidden bg-[#161122]">
+              <div className="h-full overflow-hidden bg-[#09090b]">
                 <MyNotesCanvas
                   manifests={manifests}
                   allTopics={allTopics}
@@ -591,7 +595,7 @@ export function App() {
               </div>
             )}
 
-            {/* Obsidian Graph View (D3.js) */}
+            {/* Modern Knowledge Graph View (D3.js) */}
             {activeView === 'graph' && (
               <GraphView
                 manifests={manifests}
@@ -601,13 +605,13 @@ export function App() {
             )}
 
             {activeView === 'matrix-calculator' && (
-              <div className="h-full overflow-y-auto bg-[#1e1e1e] p-4 sm:p-8">
+              <div className="h-full overflow-y-auto bg-[#09090b]">
                 <MatrixCalculator />
               </div>
             )}
 
             {activeView === 'formula-evaluator' && (
-              <div className="h-full overflow-hidden bg-[#1e1e1e]">
+              <div className="h-full overflow-hidden bg-[#09090b]">
                 <FormulaEvaluator
                   topics={allTopics.length > 0 ? allTopics : (selectedTopic ? [selectedTopic] : [])}
                   selectedFormulaId={selectedFormulaIdForBank}
@@ -622,7 +626,7 @@ export function App() {
             )}
 
             {activeView === 'favorites' && (
-              <div className="h-full overflow-y-auto bg-[#1e1e1e]">
+              <div className="h-full overflow-y-auto bg-[#09090b]">
                 <FavoritesView
                   topics={allTopics.length > 0 ? allTopics : (selectedTopic ? [selectedTopic] : [])}
                   favoriteIds={favorites}
@@ -639,24 +643,25 @@ export function App() {
         </main>
       </div>
 
-      {/* 3. Authentic Obsidian Bottom Status Bar (matching screenshot) */}
-      <footer className="h-6 bg-[#181818] border-t border-[#242424] px-3 flex items-center justify-between text-[11px] text-[#777777] shrink-0">
+      {/* 3. Modern Minimalist Bottom Status Bar (Flat Design Evolution) */}
+      <footer className="h-6 bg-black border-t border-zinc-800 px-3 flex items-center justify-between text-[11px] text-zinc-400 shrink-0">
         <div className="flex items-center gap-2">
-          <span>LibreMath Vault</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
+          <span className="text-zinc-300 font-medium">IngeData</span>
+          <span className="text-zinc-600">|</span>
+          <span className="text-zinc-500">UTN Rosario • UPL</span>
         </div>
 
-        {/* Right Obsidian status stats */}
+        {/* Right status stats */}
         <div className="flex items-center gap-4">
-          <span className="hover:text-[#aaaaaa] transition-colors cursor-pointer">
-            0 entrantes
-          </span>
-          <div className="flex items-center gap-1.5 hover:text-[#aaaaaa] transition-colors cursor-pointer">
-            <PenTool className="w-3 h-3 text-[#888888]" />
+          <div className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer">
+            <PenTool className="w-3 h-3 text-zinc-500" />
             <span>{wordsCount} palabras</span>
             <span>{charsCount.toLocaleString()} caracteres</span>
           </div>
-          <div className="flex items-center gap-1 text-emerald-500/80">
+          <div className="flex items-center gap-1 text-emerald-400">
             <Check className="w-3 h-3" />
+            <span className="text-[10px] font-mono">Sincronizado</span>
           </div>
         </div>
       </footer>

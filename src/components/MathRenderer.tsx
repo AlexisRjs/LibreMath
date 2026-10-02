@@ -40,35 +40,35 @@ export const MathRenderer: React.FC<MathRendererProps> = ({
   if (!block) {
     return (
       <span
-        className={`inline-katex text-slate-100 ${className}`}
+        className={`inline-katex text-white ${className}`}
         dangerouslySetInnerHTML={{ __html: html }}
       />
     );
   }
 
   return (
-    <div className={`relative group my-3 p-3 rounded-lg bg-darkviolet-925/90 border border-purple-900/40 shadow-inner overflow-x-auto text-center ${className}`}>
+    <div className={`relative group my-3 p-3.5 rounded-xl bg-black border border-zinc-800 shadow-sm overflow-x-auto text-center ${className}`}>
       {copyable && (
         <button
           onClick={handleCopy}
           title="Copiar sintaxis LaTeX"
-          className="absolute top-2 right-2 p-1.5 rounded-md bg-darkviolet-850/80 hover:bg-darkviolet-800 text-purple-300 hover:text-white opacity-0 group-hover:opacity-100 transition-all text-xs flex items-center gap-1 border border-purple-800/40"
+          className="absolute top-2 right-2 p-1.5 rounded-lg bg-[#0e0e12] hover:bg-zinc-800 text-zinc-300 hover:text-white opacity-0 group-hover:opacity-100 transition-all text-xs flex items-center gap-1 border border-zinc-800 cursor-pointer"
         >
           {copied ? (
             <>
               <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400 font-medium">Copiado</span>
+              <span className="text-emerald-400 font-medium text-[11px]">Copiado</span>
             </>
           ) : (
             <>
-              <Copy className="w-3.5 h-3.5" />
-              <span>LaTeX</span>
+              <Copy className="w-3.5 h-3.5 text-[#a78bfa]" />
+              <span className="text-[11px] font-mono">LaTeX</span>
             </>
           )}
         </button>
       )}
       <div
-        className="text-center text-slate-100 py-1 overflow-x-auto"
+        className="text-center text-white py-1 overflow-x-auto"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>

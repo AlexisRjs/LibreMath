@@ -2,15 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { Topic, FormulaItem } from '../../types/modules';
 import { MathRenderer } from '../MathRenderer';
 import {
-  Calculator,
+  Sigma,
   Search,
   Bookmark,
-  Sparkles,
-  Play,
   Copy,
   Check,
   ExternalLink,
   BookOpen,
+  Code2,
+  Layers,
 } from 'lucide-react';
 
 interface FormulaBankProps {
@@ -27,227 +27,6 @@ interface EnrichedFormula {
   moduleName: string;
   moduleId: string;
 }
-
-interface CustomCalculator {
-  inputs: {
-    key: string;
-    label: string;
-    symbol: string;
-    default: number;
-    unit: string;
-  }[];
-  compute: (v: Record<string, number>) => {
-    result: number;
-    unit: string;
-    stepsLatex: string;
-  };
-}
-
-// Dedicated high-precision computational engines for core engineering formulas
-const COMPUTATIONAL_ENGINES: Record<string, CustomCalculator> = {
-  torricelli: {
-    inputs: [
-      { key: 'v0', label: 'Velocidad inicial', symbol: 'v_0', default: 10, unit: 'm/s' },
-      { key: 'a', label: 'Aceleración', symbol: 'a', default: 2.5, unit: 'm/s²' },
-      { key: 'dx', label: 'Desplazamiento', symbol: '\\Delta x', default: 50, unit: 'm' },
-    ],
-    compute: v => {
-      const radicand = v.v0 ** 2 + 2 * v.a * v.dx;
-      const res = radicand >= 0 ? Math.sqrt(radicand) : NaN;
-      return {
-        result: res,
-        unit: 'm/s',
-        stepsLatex: `v_f = \\sqrt{(${v.v0})^2 + 2 \\cdot (${v.a}) \\cdot (${v.dx})} = \\sqrt{${radicand.toFixed(2)}} = ${isNaN(res) ? '\\text{No real}' : res.toFixed(3)} \\text{ m/s}`,
-      };
-    },
-  },
-  'mruv-pos': {
-    inputs: [
-      { key: 'x0', label: 'Posición inicial', symbol: 'x_0', default: 0, unit: 'm' },
-      { key: 'v0', label: 'Velocidad inicial', symbol: 'v_0', default: 15, unit: 'm/s' },
-      { key: 'a', label: 'Aceleración', symbol: 'a', default: -9.81, unit: 'm/s²' },
-      { key: 't', label: 'Tiempo', symbol: 't', default: 2, unit: 's' },
-    ],
-    compute: v => {
-      const res = v.x0 + v.v0 * v.t + 0.5 * v.a * v.t ** 2;
-      return {
-        result: res,
-        unit: 'm',
-        stepsLatex: `x(${v.t}) = ${v.x0} + (${v.v0})(${v.t}) + \\frac{1}{2}(${v.a})(${v.t})^2 = ${res.toFixed(3)} \\text{ m}`,
-      };
-    },
-  },
-  balistica: {
-    inputs: [
-      { key: 'v0', label: 'Rapidez de disparo', symbol: 'v_0', default: 25, unit: 'm/s' },
-      { key: 'theta', label: 'Ángulo de elevación', symbol: '\\theta', default: 45, unit: 'grados' },
-      { key: 'g', label: 'Gravedad', symbol: 'g', default: 9.81, unit: 'm/s²' },
-    ],
-    compute: v => {
-      const rad = (v.theta * Math.PI) / 180;
-      const R = (v.v0 ** 2 * Math.sin(2 * rad)) / v.g;
-      const H = (v.v0 ** 2 * Math.sin(rad) ** 2) / (2 * v.g);
-      return {
-        result: R,
-        unit: 'm',
-        stepsLatex: `R = \\frac{${v.v0}^2 \\sin(${2 * v.theta}^\\circ)}{${v.g}} = ${R.toFixed(2)} \\text{ m} \\quad \\left(H_{\\max} = ${H.toFixed(2)} \\text{ m}\\right)`,
-      };
-    },
-  },
-  'energia-cinetica': {
-    inputs: [
-      { key: 'm', label: 'Masa', symbol: 'm', default: 1200, unit: 'kg' },
-      { key: 'v', label: 'Velocidad', symbol: 'v', default: 20, unit: 'm/s' },
-      { key: 'h', label: 'Altura', symbol: 'h', default: 15, unit: 'm' },
-      { key: 'g', label: 'Gravedad', symbol: 'g', default: 9.81, unit: 'm/s²' },
-    ],
-    compute: v => {
-      const ec = 0.5 * v.m * v.v ** 2;
-      const ep = v.m * v.g * v.h;
-      const em = ec + ep;
-      return {
-        result: em,
-        unit: 'J',
-        stepsLatex: `E_c = ${ec.toFixed(1)} \\text{ J}, \\; E_{pg} = ${ep.toFixed(1)} \\text{ J} \\implies E_{\\text{mec}} = ${em.toFixed(1)} \\text{ J}`,
-      };
-    },
-  },
-  'friccion-correas-euler': {
-    inputs: [
-      { key: 't1', label: 'Tensión menor', symbol: 'T_1', default: 100, unit: 'N' },
-      { key: 'mu', label: 'Coef. rozamiento', symbol: '\\mu', default: 0.3, unit: 'adim' },
-      { key: 'beta', label: 'Ángulo de contacto', symbol: '\\beta', default: 180, unit: 'grados' },
-    ],
-    compute: v => {
-      const rad = (v.beta * Math.PI) / 180;
-      const res = v.t1 * Math.exp(v.mu * rad);
-      return {
-        result: res,
-        unit: 'N',
-        stepsLatex: `T_2 = ${v.t1} \\cdot e^{${v.mu} \\cdot ${rad.toFixed(3)}} = ${res.toFixed(2)} \\text{ N}`,
-      };
-    },
-  },
-  'periodo-pendulo-fisico-compuesto': {
-    inputs: [
-      { key: 'io', label: 'Momento de inercia IO', symbol: 'I_O', default: 0.85, unit: 'kg·m²' },
-      { key: 'm', label: 'Masa total', symbol: 'M', default: 2.5, unit: 'kg' },
-      { key: 'd', label: 'Distancia pivote-CM', symbol: 'd', default: 0.35, unit: 'm' },
-      { key: 'g', label: 'Gravedad', symbol: 'g', default: 9.81, unit: 'm/s²' },
-    ],
-    compute: v => {
-      const denom = v.m * v.g * v.d;
-      const res = 2 * Math.PI * Math.sqrt(v.io / denom);
-      return {
-        result: res,
-        unit: 's',
-        stepsLatex: `T = 2\\pi \\sqrt{\\frac{${v.io}}{${v.m} \\cdot ${v.g} \\cdot ${v.d}}} = 2\\pi \\sqrt{\\frac{${v.io}}{${denom.toFixed(3)}}} = ${res.toFixed(3)} \\text{ s}`,
-      };
-    },
-  },
-  'amplitud-resonancia-forzada': {
-    inputs: [
-      { key: 'f0', label: 'Amplitud fuerza', symbol: 'F_0', default: 50, unit: 'N' },
-      { key: 'm', label: 'Masa oscilador', symbol: 'm', default: 2, unit: 'kg' },
-      { key: 'w0', label: 'Frecuencia natural', symbol: '\\omega_0', default: 10, unit: 'rad/s' },
-      { key: 'w', label: 'Frecuencia excitadora', symbol: '\\omega', default: 9.8, unit: 'rad/s' },
-      { key: 'gamma', label: 'Amortiguamiento', symbol: '\\gamma', default: 0.2, unit: 's⁻¹' },
-    ],
-    compute: v => {
-      const term1 = (v.w0 ** 2 - v.w ** 2) ** 2;
-      const term2 = 4 * v.gamma ** 2 * v.w ** 2;
-      const denom = Math.sqrt(term1 + term2);
-      const res = (v.f0 / v.m) / denom;
-      return {
-        result: res,
-        unit: 'm',
-        stepsLatex: `A(${v.w}) = \\frac{${v.f0} / ${v.m}}{\\sqrt{(${v.w0}^2 - ${v.w}^2)^2 + 4(${v.gamma})^2(${v.w})^2}} = \\frac{${(v.f0/v.m).toFixed(2)}}{${denom.toFixed(3)}} = ${res.toFixed(4)} \\text{ m}`,
-      };
-    },
-  },
-  'rendimiento-ciclo-carnot': {
-    inputs: [
-      { key: 'tc', label: 'Temperatura fuente caliente', symbol: 'T_C', default: 600, unit: 'K' },
-      { key: 'tf', label: 'Temperatura fuente fría', symbol: 'T_F', default: 300, unit: 'K' },
-    ],
-    compute: v => {
-      const res = 1 - v.tf / v.tc;
-      return {
-        result: res * 100,
-        unit: '%',
-        stepsLatex: `\\eta = 1 - \\frac{${v.tf}}{${v.tc}} = 1 - ${(v.tf/v.tc).toFixed(3)} = ${(res*100).toFixed(1)} \\%`,
-      };
-    },
-  },
-  'ley-coulomb-vectorial': {
-    inputs: [
-      { key: 'q1', label: 'Carga 1', symbol: 'q_1', default: 10, unit: 'µC' },
-      { key: 'q2', label: 'Carga 2', symbol: 'q_2', default: -5, unit: 'µC' },
-      { key: 'r', label: 'Distancia de separación', symbol: 'r', default: 0.1, unit: 'm' },
-    ],
-    compute: v => {
-      const k = 8.9875e9;
-      const q1_c = v.q1 * 1e-6;
-      const q2_c = v.q2 * 1e-6;
-      const res = (k * Math.abs(q1_c * q2_c)) / (v.r ** 2);
-      return {
-        result: res,
-        unit: 'N',
-        stepsLatex: `F = (8.99 \\times 10^9) \\frac{|(${v.q1}\\cdot 10^{-6})(${v.q2}\\cdot 10^{-6})|}{(${v.r})^2} = ${res.toFixed(2)} \\text{ N}`,
-      };
-    },
-  },
-  'capacidad-capacitor-plano': {
-    inputs: [
-      { key: 'area', label: 'Área de placas A', symbol: 'A', default: 0.05, unit: 'm²' },
-      { key: 'd', label: 'Separación placas d', symbol: 'd', default: 0.002, unit: 'm' },
-      { key: 'kappa', label: 'Constante dieléctrica', symbol: '\\kappa', default: 3.5, unit: 'adim' },
-    ],
-    compute: v => {
-      const eps0 = 8.854e-12;
-      const C = (v.kappa * eps0 * v.area) / v.d;
-      const pF = C * 1e12;
-      return {
-        result: pF,
-        unit: 'pF',
-        stepsLatex: `C = \\frac{${v.kappa} \\cdot (8.854 \\times 10^{-12}) \\cdot ${v.area}}{${v.d}} = ${pF.toFixed(2)} \\text{ pF}`,
-      };
-    },
-  },
-  'ecuacion-onda-unidimensional': {
-    inputs: [
-      { key: 'v', label: 'Velocidad de propagación', symbol: 'v', default: 340, unit: 'm/s' },
-      { key: 'f', label: 'Frecuencia f', symbol: 'f', default: 440, unit: 'Hz' },
-    ],
-    compute: v => {
-      const lambda = v.v / v.f;
-      const k = (2 * Math.PI) / lambda;
-      const omega = 2 * Math.PI * v.f;
-      return {
-        result: lambda,
-        unit: 'm',
-        stepsLatex: `\\lambda = \\frac{${v.v}}{${v.f}} = ${lambda.toFixed(3)} \\text{ m} \\quad \\left(k = ${k.toFixed(2)} \\text{ rad/m}, \\; \\omega = ${omega.toFixed(1)} \\text{ rad/s}\\right)`,
-      };
-    },
-  },
-  'criterio-rayleigh-abertura-circular': {
-    inputs: [
-      { key: 'lambda', label: 'Longitud de onda', symbol: '\\lambda', default: 550, unit: 'nm' },
-      { key: 'd', label: 'Diámetro de apertura D', symbol: 'D', default: 150, unit: 'mm' },
-    ],
-    compute: v => {
-      const lam_m = v.lambda * 1e-9;
-      const d_m = v.d * 1e-3;
-      const rad = 1.22 * (lam_m / d_m);
-      const arcsec = rad * (180 / Math.PI) * 3600;
-      return {
-        result: arcsec,
-        unit: 'arcsec',
-        stepsLatex: `\\theta_{\\min} = 1.22 \\frac{${v.lambda} \\times 10^{-9}}{${v.d} \\times 10^{-3}} = ${rad.toExponential(3)} \\text{ rad} = ${arcsec.toFixed(2)}''`,
-      };
-    },
-  },
-};
 
 export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
   topics,
@@ -298,7 +77,8 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
         item.formula.name.toLowerCase().includes(term) ||
         item.formula.latex.toLowerCase().includes(term) ||
         (item.formula.description && item.formula.description.toLowerCase().includes(term)) ||
-        (item.formula.tags && item.formula.tags.some(t => t.toLowerCase().includes(term)))
+        (item.formula.tags && item.formula.tags.some(t => t.toLowerCase().includes(term))) ||
+        item.topic.title.toLowerCase().includes(term)
       );
     });
   }, [allEnrichedFormulas, searchTerm, selectedModule]);
@@ -311,36 +91,6 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
       allEnrichedFormulas[0]
     );
   }, [allEnrichedFormulas, activeFormulaId, filteredFormulas]);
-
-  // Active computational engine
-  const engine = currentItem ? COMPUTATIONAL_ENGINES[currentItem.formula.id] : undefined;
-
-  // Dynamic input values for the active formula
-  const [customValues, setCustomValues] = useState<Record<string, number>>({});
-
-  // Reset/sync custom values when active formula changes
-  React.useEffect(() => {
-    if (!currentItem) return;
-    const initial: Record<string, number> = {};
-    if (engine) {
-      engine.inputs.forEach(i => {
-        initial[i.key] = i.default;
-      });
-    } else {
-      initial['x'] = 2.0;
-      initial['y'] = 1.0;
-      initial['t'] = 0.5;
-    }
-    setCustomValues(initial);
-  }, [currentItem?.formula.id, engine]);
-
-  const handleInputChange = (key: string, val: string) => {
-    const num = parseFloat(val);
-    setCustomValues(prev => ({
-      ...prev,
-      [key]: isNaN(num) ? 0 : num,
-    }));
-  };
 
   const handleCopyLatex = (latex: string) => {
     navigator.clipboard.writeText(latex);
@@ -358,24 +108,22 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
     { id: 'fisica-2', label: 'Física II', count: allEnrichedFormulas.filter(f => f.moduleId === 'fisica-2').length },
   ];
 
-  const evaluatedOutput = engine ? engine.compute(customValues) : null;
-
   return (
-    <div className="flex flex-col h-full bg-[#1e1e1e] text-[#dcddde] select-none">
-      {/* 1. Obsidian Breadcrumbs & Header Bar */}
-      <div className="h-10 border-b border-[#242424] px-4 flex items-center justify-between bg-[#181818] shrink-0 text-xs">
-        <div className="flex items-center gap-2 text-[#888888]">
-          <Calculator className="w-3.5 h-3.5 text-[#999999]" />
+    <div className="flex flex-col h-full bg-[#09090b] text-white select-none">
+      {/* 1. Header Bar */}
+      <div className="h-10 border-b border-zinc-800 px-4 flex items-center justify-between bg-black shrink-0 text-xs">
+        <div className="flex items-center gap-2 text-zinc-400">
+          <Sigma className="w-4 h-4 text-[#a78bfa]" />
           <div className="flex items-center gap-1.5 text-[11px] font-mono">
-            <span className="text-[#666666]">Herramientas</span>
-            <span className="text-[#444444]">/</span>
-            <span className="text-[#cccccc] font-medium">Banco de Fórmulas</span>
+            <span className="text-zinc-500">Herramientas</span>
+            <span className="text-zinc-700">/</span>
+            <span className="text-white font-medium">Banco de Fórmulas</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#242424] text-[#aaaaaa] border border-[#2e2e2e]">
-            {allEnrichedFormulas.length} fórmulas
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/30 font-semibold">
+            {allEnrichedFormulas.length} fórmulas en LaTeX plano
           </span>
         </div>
       </div>
@@ -383,50 +131,50 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
       {/* 2. Main Workbench Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-5 max-w-7xl mx-auto w-full select-text">
         {/* Module Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-md bg-[#181818] border border-[#242424] text-xs">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-black border border-zinc-800 text-xs">
           {moduleTabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setSelectedModule(tab.id)}
-              className={`px-3 py-1 rounded transition-colors flex items-center gap-1.5 text-xs ${
+              className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium ${
                 selectedModule === tab.id
-                  ? 'bg-[#2a2a2a] text-white font-medium border border-[#383838]'
-                  : 'text-[#888888] hover:text-[#cccccc] hover:bg-[#202020]'
+                  ? 'bg-white text-black font-semibold shadow-xs'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
               }`}
             >
               <span>{tab.label}</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#141414] text-[#777777]">
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedModule === tab.id ? 'bg-zinc-200 text-black' : 'bg-zinc-900 text-zinc-400'}`}>
                 {tab.count}
               </span>
             </button>
           ))}
         </div>
 
-        {/* Catalog List + Evaluator Workspace */}
+        {/* Catalog List + Formula Workspace */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* Left Column: Search & Catalog (5 cols) */}
           <div className="lg:col-span-5 space-y-3">
             {/* Search Input */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#666666] absolute left-3 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Buscar fórmula por nombre o LaTeX..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-md bg-[#161616] border border-[#262626] text-[#e0e0e0] placeholder:text-[#666666] text-xs outline-none focus:border-[#404040] transition-colors"
+                placeholder="Buscar fórmula por nombre, tema o LaTeX..."
+                className="w-full pl-8 pr-3 py-2 rounded-xl bg-[#0e0e12] border border-zinc-800 text-white placeholder:text-zinc-600 text-xs outline-none focus:border-[#7c3aed] transition-colors"
               />
             </div>
 
-            <div className="flex items-center justify-between text-[11px] font-mono text-[#666666] px-1">
-              <span>{filteredFormulas.length} expresiones disponibles</span>
+            <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 px-1">
+              <span>{filteredFormulas.length} fórmulas disponibles</span>
               <span>Clic para inspeccionar</span>
             </div>
 
             {/* Scrollable list */}
-            <div className="space-y-1.5 max-h-[580px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[620px] overflow-y-auto pr-1">
               {filteredFormulas.length === 0 ? (
-                <div className="p-8 text-center bg-[#181818] rounded-md border border-[#242424] text-xs text-[#666666]">
+                <div className="p-8 text-center bg-[#0e0e12] rounded-xl border border-zinc-800 text-xs text-zinc-500">
                   No se encontraron fórmulas con los filtros seleccionados.
                 </div>
               ) : (
@@ -438,18 +186,18 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
                     <div
                       key={formula.id}
                       onClick={() => setActiveFormulaId(formula.id)}
-                      className={`p-3 rounded-md cursor-pointer transition-colors border text-left group ${
+                      className={`p-3 rounded-xl cursor-pointer transition-all border text-left group ${
                         isSelected
-                          ? 'bg-[#222222] border-[#383838] border-l-[3px] border-l-[#7c3aed] text-white'
-                          : 'bg-[#181818] border-[#242424] hover:bg-[#1f1f1f] hover:border-[#2e2e2e] text-[#cccccc]'
+                          ? 'bg-[#7c3aed]/15 border-[#7c3aed]/50 text-white font-medium shadow-xs'
+                          : 'bg-[#0e0e12] border-zinc-800 hover:bg-zinc-900/60 hover:border-zinc-700 text-zinc-300'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <span className="text-[10px] font-mono text-[#777777] block truncate">
+                          <span className="text-[10px] font-mono text-zinc-500 block truncate">
                             {moduleName} • {topic.unit.split(':')[0]}
                           </span>
-                          <h4 className={`text-xs font-semibold truncate mt-0.5 ${isSelected ? 'text-white' : 'text-[#dddddd] group-hover:text-white'}`}>
+                          <h4 className={`text-xs font-bold truncate mt-0.5 ${isSelected ? 'text-white' : 'text-zinc-200 group-hover:text-white'}`}>
                             {formula.name}
                           </h4>
                         </div>
@@ -458,7 +206,7 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
                         )}
                       </div>
 
-                      <div className="mt-2 px-2 py-1.5 rounded bg-[#121212] border border-[#1e1e1e] overflow-x-hidden text-xs text-[#b0b0b0]">
+                      <div className="mt-2 px-2.5 py-1.5 rounded-lg bg-black border border-zinc-800/80 overflow-x-hidden text-xs text-zinc-300">
                         <MathRenderer math={formula.latex} block={false} />
                       </div>
                     </div>
@@ -468,26 +216,26 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Selected Formula Workspace & Evaluator (7 cols) */}
+          {/* Right Column: Selected Formula Workspace (7 cols) */}
           {currentItem ? (
             <div className="lg:col-span-7 space-y-4 sticky top-4">
               {/* Formula Master Card */}
-              <div className="p-5 rounded-md bg-[#181818] border border-[#262626] space-y-4">
+              <div className="p-6 rounded-xl bg-[#0e0e12] border border-zinc-800 space-y-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2 text-xs font-mono mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-[#222222] text-[#aaaaaa] border border-[#2e2e2e]">
+                    <div className="flex items-center gap-2 text-xs font-mono mb-1.5">
+                      <span className="px-2 py-0.5 rounded-full bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/30 font-semibold">
                         {currentItem.moduleName}
                       </span>
-                      <span className="text-[#666666] font-mono text-[11px] truncate max-w-xs">
+                      <span className="text-zinc-500 font-mono text-[11px] truncate max-w-xs">
                         {currentItem.topic.unit}
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold text-white tracking-tight">
+                    <h3 className="text-xl font-extrabold text-white tracking-tight">
                       {currentItem.formula.name}
                     </h3>
                     {currentItem.formula.description && (
-                      <p className="text-xs text-[#888888] mt-1 leading-relaxed">
+                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
                         {currentItem.formula.description}
                       </p>
                     )}
@@ -498,10 +246,10 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
                       <button
                         onClick={() => onToggleFavorite(currentItem.formula.id)}
                         title={favorites.includes(currentItem.formula.id) ? 'Quitar de guardadas' : 'Guardar en favoritas'}
-                        className={`p-1.5 rounded transition-colors ${
+                        className={`p-1.5 rounded-md transition-colors ${
                           favorites.includes(currentItem.formula.id)
-                            ? 'bg-amber-500/15 text-amber-400'
-                            : 'text-[#888888] hover:text-white hover:bg-[#222222]'
+                            ? 'bg-amber-500/20 text-amber-400'
+                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                         }`}
                       >
                         <Bookmark className="w-4 h-4 fill-current" />
@@ -510,8 +258,8 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
 
                     <button
                       onClick={() => handleCopyLatex(currentItem.formula.latex)}
-                      title="Copiar código LaTeX"
-                      className="p-1.5 rounded bg-[#222222] hover:bg-[#2a2a2a] border border-[#2c2c2c] text-[#cccccc] hover:text-white transition-colors text-xs flex items-center gap-1"
+                      title="Copiar código LaTeX plano"
+                      className="p-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition-colors text-xs flex items-center gap-1"
                     >
                       {copied ? (
                         <>
@@ -521,7 +269,7 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
                       ) : (
                         <>
                           <Copy className="w-3.5 h-3.5" />
-                          <span>LaTeX</span>
+                          <span>Copiar LaTeX</span>
                         </>
                       )}
                     </button>
@@ -530,7 +278,7 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
                       <button
                         onClick={() => onSelectTopic(currentItem.topic)}
                         title="Abrir nota completa en bóveda"
-                        className="p-1.5 rounded bg-[#222222] hover:bg-[#2a2a2a] border border-[#2c2c2c] text-[#cccccc] hover:text-white transition-colors text-xs flex items-center gap-1"
+                        className="p-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition-colors text-xs flex items-center gap-1"
                       >
                         <BookOpen className="w-3.5 h-3.5 text-[#a78bfa]" />
                         <span className="hidden sm:inline">Ver Nota</span>
@@ -539,18 +287,45 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
                   </div>
                 </div>
 
-                {/* Large LaTeX Formula Display */}
-                <div className="p-4 rounded-md bg-[#131313] border border-[#222222] overflow-x-auto text-center">
-                  <MathRenderer math={currentItem.formula.latex} block copyable />
+                {/* 1. Large LaTeX Formula Rendered Display */}
+                <div>
+                  <div className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 font-semibold">
+                    <Sigma className="w-3.5 h-3.5 text-[#a78bfa]" />
+                    <span>Fórmula Tipográfica (KaTeX)</span>
+                  </div>
+                  <div className="p-5 rounded-xl bg-black border border-zinc-800 overflow-x-auto text-center flex items-center justify-center min-h-[80px] text-white">
+                    <MathRenderer math={currentItem.formula.latex} block copyable />
+                  </div>
+                </div>
+
+                {/* 2. Plain LaTeX Syntax Box */}
+                <div>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 uppercase tracking-wider mb-1.5">
+                    <span className="flex items-center gap-1.5 text-zinc-300 font-semibold">
+                      <Code2 className="w-3.5 h-3.5 text-[#a78bfa]" />
+                      Código LaTeX Plano
+                    </span>
+                    <button
+                      onClick={() => handleCopyLatex(currentItem.formula.latex)}
+                      className="text-[10px] text-[#a78bfa] hover:text-white transition-colors lowercase"
+                    >
+                      {copied ? 'copiado al portapapeles' : 'clic para copiar'}
+                    </button>
+                  </div>
+                  <div className="relative group">
+                    <pre className="font-mono text-xs text-zinc-200 bg-black p-3.5 rounded-xl border border-zinc-800 overflow-x-auto select-all whitespace-pre-wrap break-all leading-relaxed">
+                      {currentItem.formula.latex}
+                    </pre>
+                  </div>
                 </div>
 
                 {/* Tags */}
                 {currentItem.formula.tags && currentItem.formula.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
+                  <div className="flex flex-wrap gap-1 pt-2 border-t border-zinc-800">
                     {currentItem.formula.tags.map((tag, tIdx) => (
                       <span
                         key={tIdx}
-                        className="px-1.5 py-0.5 rounded bg-[#161616] text-[10px] font-mono text-[#777777] border border-[#222222]"
+                        className="px-2 py-0.5 rounded-md bg-zinc-900 text-[10px] font-mono text-zinc-400 border border-zinc-800"
                       >
                         #{tag}
                       </span>
@@ -559,88 +334,69 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
                 )}
               </div>
 
-              {/* Interactive Evaluation Section */}
-              {engine ? (
-                <div className="p-5 rounded-md bg-[#181818] border border-[#262626] space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#242424] pb-2.5">
-                    <h4 className="text-xs font-mono uppercase tracking-wider text-[#cccccc] flex items-center gap-1.5">
-                      <Play className="w-3.5 h-3.5 text-[#a78bfa]" />
-                      Evaluador Paramétrico
-                    </h4>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/30 border border-emerald-800/40 px-2 py-0.5 rounded">
-                      Motor Numérico Activo
-                    </span>
+              {/* Theoretical Context & Topic Variables */}
+              <div className="p-5 rounded-xl bg-[#0e0e12] border border-zinc-800 space-y-3">
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                  <div className="flex items-center gap-2 text-xs font-mono text-white">
+                    <Layers className="w-3.5 h-3.5 text-[#a78bfa]" />
+                    <span className="uppercase tracking-wider font-semibold">Contexto del Tema: {currentItem.topic.title}</span>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {engine.inputs.map(inp => (
-                      <div key={inp.key} className="space-y-1 p-2.5 rounded-md bg-[#141414] border border-[#242424]">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-[#cccccc] font-medium flex items-center gap-1">
-                            <span className="font-mono text-[#a78bfa]">${inp.symbol}$</span>
-                            <span className="truncate">{inp.label}</span>
-                          </span>
-                          <span className="text-[#777777] font-mono text-[10px]">{inp.unit}</span>
-                        </div>
-                        <input
-                          type="number"
-                          step="any"
-                          value={customValues[inp.key] ?? inp.default}
-                          onChange={e => handleInputChange(inp.key, e.target.value)}
-                          className="w-full bg-[#181818] border border-[#2c2c2c] focus:border-[#4a4a4a] rounded px-2.5 py-1 text-white font-mono text-xs outline-none transition-colors"
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Calculation Output Box */}
-                  {evaluatedOutput && (
-                    <div className="space-y-2.5 pt-1">
-                      <div className="p-3.5 rounded-md bg-[#141414] border border-[#262626] flex items-center justify-between">
-                        <div>
-                          <div className="text-[10px] font-mono text-[#777777] mb-0.5">Resultado Calculado:</div>
-                          <div className="text-xl font-bold font-mono text-emerald-400">
-                            {isNaN(evaluatedOutput.result) ? 'Indefinido / No real' : evaluatedOutput.result.toFixed(4)}{' '}
-                            <span className="text-xs font-normal text-[#888888]">{evaluatedOutput.unit}</span>
-                          </div>
-                        </div>
-                        <Sparkles className="w-5 h-5 text-emerald-400/60" />
-                      </div>
-
-                      <div className="p-3 rounded-md bg-[#121212] border border-[#202020] overflow-x-auto text-xs">
-                        <span className="text-[10px] font-mono text-[#666666] block mb-1">
-                          Sustitución Paso a Paso:
-                        </span>
-                        <MathRenderer math={evaluatedOutput.stepsLatex} block={false} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Analytical Contextual Card for Formulas without Custom Numerical Engine */
-                <div className="p-4 rounded-md bg-[#181818] border border-[#262626] border-l-4 border-l-[#7c3aed] space-y-2.5 text-xs">
-                  <div className="flex items-center gap-2 font-mono text-[#aaaaaa]">
-                    <BookOpen className="w-3.5 h-3.5 text-[#a78bfa]" />
-                    <span>Definición Analítica y Teorema</span>
-                  </div>
-                  <p className="text-[#888888] leading-relaxed">
-                    Esta fórmula forma parte del marco teórico de <strong className="text-[#cccccc]">{currentItem.topic.title}</strong>. Para su demostración y aplicaciones completas, puedes consultar la nota en la bóveda.
-                  </p>
                   {onSelectTopic && (
                     <button
                       onClick={() => onSelectTopic(currentItem.topic)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#222222] hover:bg-[#2a2a2a] border border-[#2e2e2e] text-[#cccccc] hover:text-white transition-colors text-xs font-mono"
+                      className="text-[11px] font-mono text-[#a78bfa] hover:text-white flex items-center gap-1 transition-colors"
                     >
                       <span>Ir a la nota</span>
                       <ExternalLink className="w-3 h-3" />
                     </button>
                   )}
                 </div>
-              )}
+
+                {currentItem.topic.description && (
+                  <p className="text-xs text-[#888888] leading-relaxed">
+                    {currentItem.topic.description}
+                  </p>
+                )}
+
+                {/* Topic Variables Table if available */}
+                {currentItem.topic.variables && currentItem.topic.variables.length > 0 ? (
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[11px] font-mono text-[#777777] uppercase tracking-wider block">
+                      Variables y Parámetros del Tema
+                    </span>
+                    <div className="overflow-x-auto rounded-lg border border-zinc-800 bg-black">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-zinc-800 bg-zinc-950 text-[10px] font-mono uppercase text-zinc-400">
+                            <th className="p-2.5">Símbolo</th>
+                            <th className="p-2.5">Concepto</th>
+                            <th className="p-2.5">Unidad SI</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+                          {currentItem.topic.variables.map((v, idx) => (
+                            <tr key={idx} className="hover:bg-zinc-900/40 transition-colors">
+                              <td className="p-2.5 font-mono text-[#a78bfa] font-semibold whitespace-nowrap">
+                                <MathRenderer math={v.symbol} block={false} />
+                              </td>
+                              <td className="p-2.5 text-white font-medium">{v.name}</td>
+                              <td className="p-2.5 font-mono text-zinc-500">{v.unit || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-zinc-400 py-1">
+                    Esta fórmula forma parte de la unidad didáctica <strong className="text-white">{currentItem.topic.unit}</strong>.
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
-            <div className="lg:col-span-7 p-12 text-center bg-[#181818] rounded-md border border-[#242424] text-xs text-[#666666]">
-              Selecciona una fórmula del catálogo para evaluar.
+            <div className="lg:col-span-7 p-12 text-center bg-[#0e0e12] rounded-xl border border-zinc-800 text-xs text-zinc-500 shadow-sm">
+              Selecciona una fórmula del catálogo para inspeccionar su sintaxis LaTeX y contexto.
             </div>
           )}
         </div>

@@ -113,24 +113,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl rounded-lg bg-[#1e1e1e] border border-[#2e2e2e] shadow-2xl overflow-hidden flex flex-col max-h-[75vh]"
+        className="w-full max-w-2xl rounded-2xl bg-[#0e0e12] border border-zinc-800 shadow-2xl overflow-hidden flex flex-col max-h-[75vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-3.5 py-3 border-b border-[#282828] bg-[#181818]">
-          <Search className="w-4 h-4 text-[#888888] shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-800 bg-black">
+          <Search className="w-4 h-4 text-zinc-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar nota o fórmula..."
-            className="flex-1 bg-transparent text-[#e0e0e0] placeholder:text-[#666666] text-sm outline-none font-sans"
+            placeholder="Buscar nota o fórmula por nombre, tema o LaTeX..."
+            className="flex-1 bg-transparent text-white placeholder:text-zinc-600 text-sm outline-none font-sans"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="text-[11px] font-mono text-[#888888] hover:text-white px-1.5 py-0.5 rounded bg-[#252525]"
+              className="text-[10px] font-mono text-zinc-400 hover:text-white px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800"
             >
               ESC
             </button>
@@ -138,43 +138,43 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Filter Pills Bar */}
-        <div className="flex items-center justify-between px-3 py-1.5 bg-[#161616] border-b border-[#242424] text-xs">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between px-3.5 py-2 bg-[#0e0e12] border-b border-zinc-800 text-xs">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => setFilterType('all')}
-              className={`px-2 py-0.5 rounded text-xs transition-colors ${
+              className={`px-2.5 py-1 rounded-md text-xs transition-all font-medium ${
                 filterType === 'all'
-                  ? 'bg-[#282828] text-white font-medium'
-                  : 'text-[#888888] hover:text-[#cccccc]'
+                  ? 'bg-white text-black font-semibold shadow-xs'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
               Todos ({rawResults.length})
             </button>
             <button
               onClick={() => setFilterType('formula')}
-              className={`px-2 py-0.5 rounded text-xs transition-colors ${
+              className={`px-2.5 py-1 rounded-md text-xs transition-all font-medium ${
                 filterType === 'formula'
-                  ? 'bg-[#282828] text-white font-medium'
-                  : 'text-[#888888] hover:text-[#cccccc]'
+                  ? 'bg-white text-black font-semibold shadow-xs'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
               Fórmulas ({rawResults.filter(r => r.type === 'formula').length})
             </button>
             <button
               onClick={() => setFilterType('topic')}
-              className={`px-2 py-0.5 rounded text-xs transition-colors ${
+              className={`px-2.5 py-1 rounded-md text-xs transition-all font-medium ${
                 filterType === 'topic'
-                  ? 'bg-[#282828] text-white font-medium'
-                  : 'text-[#888888] hover:text-[#cccccc]'
+                  ? 'bg-white text-black font-semibold shadow-xs'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
               Temas ({rawResults.filter(r => r.type === 'topic').length})
             </button>
           </div>
 
-          <span className="text-[11px] font-mono text-[#666666] hidden sm:inline">
-            Navega con <kbd className="px-1 py-0.2 rounded bg-[#242424] text-[#888888]">↑</kbd>{' '}
-            <kbd className="px-1 py-0.2 rounded bg-[#242424] text-[#888888]">↓</kbd>
+          <span className="text-[11px] font-mono text-zinc-500 hidden sm:inline">
+            Navega con <kbd className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">↑</kbd>{' '}
+            <kbd className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">↓</kbd>
           </span>
         </div>
 
@@ -183,10 +183,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {/* Results List */}
           <div
             ref={listRef}
-            className="flex-1 overflow-y-auto p-1.5 space-y-0.5 border-r border-[#262626]"
+            className="flex-1 overflow-y-auto p-2 space-y-1 border-r border-zinc-800"
           >
             {results.length === 0 ? (
-              <div className="p-8 text-center text-[#777777] text-xs">
+              <div className="p-8 text-center text-zinc-500 text-xs">
                 No se encontraron resultados para &quot;{query}&quot;
               </div>
             ) : (
@@ -200,23 +200,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       onClose();
                     }}
                     onMouseEnter={() => setSelectedIndex(idx)}
-                    className={`flex items-start justify-between gap-2.5 p-2 rounded cursor-pointer transition-colors text-xs ${
+                    className={`flex items-start justify-between gap-2.5 p-2.5 rounded-lg cursor-pointer transition-all text-xs ${
                       isSelected
-                        ? 'bg-[#2a2a2a] text-white'
-                        : 'text-[#cccccc] hover:bg-[#222222]'
+                        ? 'bg-[#7c3aed]/15 text-white border-l-2 border-[#7c3aed]'
+                        : 'text-zinc-300 hover:bg-zinc-900/60 hover:text-white'
                     }`}
                   >
-                    <div className="flex items-start gap-2 min-w-0">
-                      <div className="shrink-0 mt-0.5 text-[#777777]">
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <div className="shrink-0 mt-0.5 text-zinc-400">
                         {item.type === 'formula' ? (
-                          <Hash className="w-3.5 h-3.5" />
+                          <Hash className="w-3.5 h-3.5 text-[#a78bfa]" />
                         ) : (
-                          <FileText className="w-3.5 h-3.5" />
+                          <FileText className="w-3.5 h-3.5 text-zinc-400" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium truncate">{item.title}</div>
-                        <div className="text-[11px] text-[#888888] truncate">
+                        <div className="font-semibold text-white truncate">{item.title}</div>
+                        <div className="text-[11px] text-zinc-400 truncate">
                           {item.subtitle}
                         </div>
                       </div>
@@ -224,7 +224,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                     <ArrowRight
                       className={`w-4 h-4 shrink-0 transition-opacity ${
-                        isSelected ? 'text-purple-400 opacity-100' : 'opacity-0'
+                        isSelected ? 'text-[#a78bfa] opacity-100' : 'opacity-0'
                       }`}
                     />
                   </div>
@@ -234,38 +234,38 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           </div>
 
           {/* Live Preview Panel (Right) */}
-          <div className="w-1/2 p-4 bg-[#181818] flex flex-col justify-between overflow-y-auto">
+          <div className="w-1/2 p-4 bg-black/40 flex flex-col justify-between overflow-y-auto">
             {currentItem ? (
               <div className="space-y-4">
                 <div>
-                  <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#242424] text-[#aaaaaa] border border-[#303030]">
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/30 font-semibold">
                     {currentItem.type === 'formula' ? 'Fórmula' : 'Tema'}
                   </span>
-                  <h3 className="text-sm font-semibold text-white mt-2">
+                  <h3 className="text-base font-bold text-white mt-2.5">
                     {currentItem.title}
                   </h3>
-                  <p className="text-xs text-[#888888] mt-0.5">{currentItem.subtitle}</p>
+                  <p className="text-xs text-zinc-400 mt-1">{currentItem.subtitle}</p>
                 </div>
 
                 {currentItem.latex && (
-                  <div className="p-3 rounded bg-[#141414] border border-[#222222]">
-                    <span className="text-[10px] font-mono text-[#666666] block mb-1">
-                      LaTeX:
+                  <div className="p-4 rounded-xl bg-black border border-zinc-800">
+                    <span className="text-[10px] font-mono text-zinc-500 block mb-1 uppercase font-semibold">
+                      KaTeX:
                     </span>
-                    <div className="text-center overflow-x-auto py-1">
+                    <div className="text-center overflow-x-auto py-2 text-white">
                       <MathRenderer math={currentItem.latex} block={false} />
                     </div>
                   </div>
                 )}
 
                 {currentItem.tags && currentItem.tags.length > 0 && (
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-mono text-[#666666] block">Etiquetas:</span>
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-mono text-zinc-500 block">Etiquetas:</span>
                     <div className="flex flex-wrap gap-1">
                       {currentItem.tags.map((t, i) => (
                         <span
                           key={i}
-                          className="px-1.5 py-0.5 rounded bg-[#222222] text-[10px] font-mono text-[#888888]"
+                          className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-400"
                         >
                           #{t}
                         </span>
@@ -275,15 +275,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 )}
               </div>
             ) : (
-              <div className="text-xs text-[#666666] text-center my-auto">
+              <div className="text-xs text-zinc-600 text-center my-auto">
                 Selecciona un resultado para ver la vista previa.
               </div>
             )}
 
             {/* Bottom Keyboard Guide */}
-            <div className="pt-3 border-t border-[#242424] flex items-center justify-between text-[11px] font-mono text-[#777777]">
+            <div className="pt-3 border-t border-zinc-800 flex items-center justify-between text-[11px] font-mono text-zinc-400">
               <span className="flex items-center gap-1">
-                <CornerDownLeft className="w-3 h-3 text-[#aaaaaa]" /> Enter: Abrir
+                <CornerDownLeft className="w-3 h-3 text-zinc-400" /> Enter: Abrir
               </span>
               {currentItem?.latex && (
                 <button

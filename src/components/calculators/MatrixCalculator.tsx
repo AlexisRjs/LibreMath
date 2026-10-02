@@ -83,20 +83,20 @@ export const MatrixCalculator: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#1e1e1e] text-[#dcddde] select-none">
+    <div className="flex flex-col h-full bg-[#09090b] text-white select-none">
       {/* Top Breadcrumbs */}
-      <div className="h-10 border-b border-[#242424] px-4 flex items-center justify-between bg-[#181818] shrink-0 text-xs">
-        <div className="flex items-center gap-2 text-[#888888]">
-          <Grid className="w-3.5 h-3.5 text-purple-400" />
+      <div className="h-10 border-b border-zinc-800 px-4 flex items-center justify-between bg-black shrink-0 text-xs">
+        <div className="flex items-center gap-2 text-zinc-400">
+          <Grid className="w-3.5 h-3.5 text-[#a78bfa]" />
           <div className="flex items-center gap-1.5 text-[11px] font-mono">
-            <span className="text-[#666666]">Herramientas</span>
-            <span className="text-[#444444]">/</span>
-            <span className="text-[#cccccc] font-medium">Calculadora Matricial</span>
+            <span className="text-zinc-500">Herramientas</span>
+            <span className="text-zinc-700">/</span>
+            <span className="text-white font-medium">Calculadora Matricial</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-800/40">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/30 font-semibold">
             {size} × {size}
           </span>
         </div>
@@ -104,34 +104,34 @@ export const MatrixCalculator: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto w-full select-text">
-        <div className="border-b border-[#262626] pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="border-b border-zinc-800 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h2 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
               <span>Calculadora de Matrices</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-purple-900/40 text-purple-300 border border-purple-800/30 font-mono">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[#7c3aed]/15 text-[#c084fc] border border-[#7c3aed]/30 font-mono font-medium">
                 2×2 a 5×5
               </span>
             </h2>
-            <p className="text-xs text-[#888888] mt-1">
+            <p className="text-xs text-zinc-400 mt-1">
               Cálculo de determinante, matriz inversa, transpuesta y traza en tiempo real.
             </p>
           </div>
         </div>
 
         {/* Dimension & Presets Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#181818] p-3 rounded-lg border border-[#262626]">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0e0e12] p-3.5 rounded-xl border border-zinc-800">
           {/* Dimension Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-[#888888]">Dimensión:</span>
-            <div className="flex gap-1">
+            <span className="text-xs font-mono text-zinc-400">Dimensión:</span>
+            <div className="flex gap-1 bg-black p-0.5 rounded-lg border border-zinc-800">
               {([2, 3, 4, 5] as MatrixDimension[]).map(dim => (
                 <button
                   key={dim}
                   onClick={() => handleResize(dim)}
-                  className={`px-3 py-1 rounded text-xs font-mono transition-all ${
+                  className={`px-3 py-1 rounded-md text-xs font-mono transition-all ${
                     size === dim
-                      ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30'
-                      : 'bg-[#222222] text-[#888888] hover:bg-[#2c2c2c] hover:text-white'
+                      ? 'bg-white text-black font-bold shadow-xs'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
                   }`}
                 >
                   {dim} × {dim}
@@ -144,15 +144,15 @@ export const MatrixCalculator: React.FC = () => {
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={setIdentity}
-              className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#222222] hover:bg-[#2a2a2a] border border-[#2e2e2e] text-[#cccccc] hover:text-white text-xs font-mono transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-mono transition-colors"
               title="Cargar matriz identidad"
             >
-              <RefreshCw className="w-3 h-3 text-purple-400" />
+              <RefreshCw className="w-3 h-3 text-[#a78bfa]" />
               <span>Identidad</span>
             </button>
             <button
               onClick={setZeros}
-              className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#222222] hover:bg-[#2a2a2a] border border-[#2e2e2e] text-[#cccccc] hover:text-white text-xs font-mono transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-mono transition-colors"
               title="Poner todos los coeficientes en cero"
             >
               <CircleSlash className="w-3 h-3 text-rose-400" />
@@ -160,7 +160,7 @@ export const MatrixCalculator: React.FC = () => {
             </button>
             <button
               onClick={setRandom}
-              className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#222222] hover:bg-[#2a2a2a] border border-[#2e2e2e] text-[#cccccc] hover:text-white text-xs font-mono transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-mono transition-colors"
               title="Generar coeficientes aleatorios"
             >
               <Shuffle className="w-3 h-3 text-amber-400" />
@@ -171,14 +171,14 @@ export const MatrixCalculator: React.FC = () => {
 
         {/* Interactive Matrix Input Grid & LaTeX Preview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <div className="p-4 rounded-lg bg-[#181818] border border-[#262626]">
-            <div className="text-xs font-mono text-[#888888] mb-3 flex items-center justify-between">
-              <span className="text-slate-200 font-semibold">Matriz $A$ ({size}×{size}):</span>
-              <span className="text-[10px] text-[#666666]">Edita cualquier celda</span>
+          <div className="p-4 rounded-xl bg-[#0e0e12] border border-zinc-800">
+            <div className="text-xs font-mono text-zinc-400 mb-3 flex items-center justify-between">
+              <span className="text-white font-semibold">Matriz $A$ ({size}×{size}):</span>
+              <span className="text-[10px] text-zinc-500">Edita cualquier celda</span>
             </div>
 
             <div
-              className="grid gap-1.5 mx-auto"
+              className="grid gap-2 mx-auto"
               style={{
                 gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
                 maxWidth: size === 5 ? '380px' : size === 4 ? '320px' : '260px',
@@ -192,7 +192,7 @@ export const MatrixCalculator: React.FC = () => {
                     step="any"
                     value={val}
                     onChange={e => handleCellChange(rIdx, cIdx, e.target.value)}
-                    className={`w-full text-center py-1.5 px-1 bg-[#131313] border border-[#2b2b2b] focus:border-purple-500 rounded text-white font-mono outline-none transition-colors ${
+                    className={`w-full text-center py-2 px-1 bg-black border border-zinc-800 focus:border-[#7c3aed] rounded-lg text-white font-mono font-semibold outline-none transition-colors ${
                       size >= 4 ? 'text-xs' : 'text-sm'
                     }`}
                   />
@@ -202,9 +202,9 @@ export const MatrixCalculator: React.FC = () => {
           </div>
 
           {/* Live LaTeX View */}
-          <div className="p-4 rounded-lg bg-[#181818] border border-[#262626] flex flex-col items-center justify-center min-h-[170px]">
-            <span className="text-xs font-mono text-[#888888] mb-2 self-start">Representación $\LaTeX$:</span>
-            <div className="overflow-x-auto w-full text-center py-2">
+          <div className="p-4 rounded-xl bg-[#0e0e12] border border-zinc-800 flex flex-col items-center justify-center min-h-[170px]">
+            <span className="text-xs font-mono text-zinc-400 mb-2 self-start font-semibold">Representación $\LaTeX$:</span>
+            <div className="overflow-x-auto w-full text-center py-2 text-white">
               <MathRenderer math={`A = ${matrixToLatex(matrix)}`} block copyable />
             </div>
           </div>
@@ -213,67 +213,67 @@ export const MatrixCalculator: React.FC = () => {
         {/* Results Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Determinant */}
-          <div className="p-4 rounded-lg bg-[#181818] border border-[#262626] space-y-1.5">
+          <div className="p-4 rounded-xl bg-[#0e0e12] border border-zinc-800 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-[#888888]">Determinante |A|</span>
-              <Equal className="w-3.5 h-3.5 text-purple-400" />
+              <span className="text-xs font-mono text-zinc-400">Determinante |A|</span>
+              <Equal className="w-3.5 h-3.5 text-[#a78bfa]" />
             </div>
-            <div className="text-xl font-bold font-mono text-white">
+            <div className="text-2xl font-bold font-mono text-white">
               {Math.abs(det - Math.round(det)) < 1e-6 ? Math.round(det) : det.toFixed(4)}
             </div>
-            <p className="text-[11px] text-[#777777]">
+            <p className="text-[11px] text-zinc-500">
               {Math.abs(det) > 1e-9 ? (
-                <span className="text-emerald-400">Invertible (rango = {size})</span>
+                <span className="text-emerald-400 font-medium">Invertible (rango = {size})</span>
               ) : (
-                <span className="text-rose-400">Singular (rango &lt; {size})</span>
+                <span className="text-rose-400 font-medium">Singular (rango &lt; {size})</span>
               )}
             </p>
           </div>
 
           {/* Trace */}
-          <div className="p-4 rounded-lg bg-[#181818] border border-[#262626] space-y-1.5">
+          <div className="p-4 rounded-xl bg-[#0e0e12] border border-zinc-800 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-[#888888]">Traza Tr(A)</span>
-              <span className="text-[10px] font-mono text-purple-400">Σ a_ii</span>
+              <span className="text-xs font-mono text-zinc-400">Traza Tr(A)</span>
+              <span className="text-[10px] font-mono text-[#a78bfa]">Σ a_ii</span>
             </div>
-            <div className="text-xl font-bold font-mono text-white">
+            <div className="text-2xl font-bold font-mono text-white">
               {Math.abs(trace - Math.round(trace)) < 1e-6 ? Math.round(trace) : trace.toFixed(2)}
             </div>
-            <p className="text-[11px] text-[#777777]">Suma de la diagonal principal</p>
+            <p className="text-[11px] text-zinc-500">Suma de la diagonal principal</p>
           </div>
 
           {/* Transpose preview */}
-          <div className="p-4 rounded-lg bg-[#181818] border border-[#262626] space-y-1">
-            <span className="text-xs font-mono text-[#888888]">Transpuesta $A^T$</span>
-            <div className="overflow-x-auto text-xs py-1">
+          <div className="p-4 rounded-xl bg-[#0e0e12] border border-zinc-800 space-y-1">
+            <span className="text-xs font-mono text-zinc-400">Transpuesta $A^T$</span>
+            <div className="overflow-x-auto text-xs py-2 text-white">
               <MathRenderer math={`A^T = ${matrixToLatex(transpose)}`} block={false} />
             </div>
           </div>
         </div>
 
         {/* Inverse Matrix Display */}
-        <div className="p-4 rounded-lg bg-[#181818] border border-[#262626] space-y-2.5">
+        <div className="p-5 rounded-xl bg-[#0e0e12] border border-zinc-800 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-xs text-[#cccccc]">
+            <h4 className="font-bold text-xs text-white">
               Matriz Inversa $A^{-1}$
             </h4>
             {Math.abs(det) > 1e-9 ? (
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full font-medium">
                 Existe
               </span>
             ) : (
-              <span className="text-[10px] font-mono text-rose-400 bg-rose-950/40 border border-rose-800/40 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-mono text-rose-400 bg-rose-950/40 border border-rose-800/40 px-2 py-0.5 rounded-full font-medium">
                 No existe (det = 0)
               </span>
             )}
           </div>
 
           {inv ? (
-            <div className="overflow-x-auto text-center py-3 bg-[#131313] rounded-lg border border-[#222222]">
+            <div className="overflow-x-auto text-center py-4 bg-black rounded-lg border border-zinc-800 text-white">
               <MathRenderer math={`A^{-1} = ${matrixToLatex(inv)}`} block copyable />
             </div>
           ) : (
-            <div className="p-4 rounded-lg bg-[#1a1215] border border-rose-900/40 text-rose-300 text-xs text-center font-mono">
+            <div className="p-4 rounded-lg bg-rose-950/20 border border-rose-900/40 text-rose-300 text-xs text-center font-mono">
               La matriz es singular ($\det(A) = 0$), por lo tanto no tiene inversa.
             </div>
           )}

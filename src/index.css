@@ -5,18 +5,20 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #1e1e1e;
-  --bg-secondary: #181818;
-  --bg-secondary-alt: #141414;
-  --bg-hover: #262626;
-  --bg-active: #2f2f2f;
-  --border-color: #2a2a2a;
-  --border-subtle: #222222;
-  --text-normal: #dcddde;
-  --text-muted: #8e8e8e;
-  --text-faint: #5a5a5a;
+  --bg-primary: #09090b;
+  --bg-secondary: #000000;
+  --bg-surface: #0e0e12;
+  --bg-surface-elevated: #121216;
+  --bg-hover: #18181b;
+  --bg-active: #27272a;
+  --border-color: #27272a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --text-normal: #ffffff;
+  --text-muted: #a1a1aa;
+  --text-faint: #71717a;
   --accent-purple: #7c3aed;
-  --accent-purple-hover: #905cf6;
+  --accent-purple-hover: #8b5cf6;
+  --accent-purple-subtle: rgba(124, 58, 237, 0.12);
 }
 
 @layer base {
@@ -26,27 +28,27 @@
   body {
     background-color: var(--bg-primary);
     color: var(--text-normal);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     user-select: text;
   }
 }
 
-/* Obsidian Custom scrollbars */
+/* Modern Minimalist Flat Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: #27272a;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #484848;
+  background: #7c3aed;
 }
 
 /* KaTeX Clean Minimalist styling - Standard comfortable formula size */
@@ -83,41 +85,48 @@ table .katex .mfrac,
   border-collapse: collapse;
   margin: 1.5rem 0;
   font-size: 0.95rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #27272a;
 }
 
 .prose-obsidian th,
 .prose-obsidian td {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #27272a;
   padding: 10px 14px;
   vertical-align: middle;
 }
 
 .prose-obsidian th {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: #000000;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #ffffff;
+  border-bottom: 2px solid #27272a;
 }
 
-/* Obsidian Callouts Styling (Exact Match) */
+.prose-obsidian td {
+  background-color: #09090b;
+  color: #e4e4e7;
+}
+
+/* Modern Flat Obsidian Callouts */
 .obsidian-callout {
-  border-left: 3px solid #7c3aed;
-  background-color: rgba(255, 255, 255, 0.03);
-  border-radius: 4px;
-  padding: 0.6rem 0.85rem;
-  margin: 1rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-  border-right: 1px solid rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid #27272a;
+  border-left: 4px solid #7c3aed;
+  background-color: #0e0e12;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin: 1.25rem 0;
 }
 
 .obsidian-callout-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.875rem;
-  margin-bottom: 0.25rem;
-  color: #a78bfa;
+  margin-bottom: 0.4rem;
+  color: #ffffff;
 }
 
 .obsidian-callout-note {
@@ -143,68 +152,68 @@ table .katex .mfrac,
 }
 
 .obsidian-callout-body {
-  color: #c4c4c4;
+  color: #d4d4d8;
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
-/* Obsidian Internal Wiki Links */
+/* Modern Internal Wiki Links */
 .obsidian-internal-link {
-  color: #a78bfa;
+  color: #c084fc;
   text-decoration: underline;
-  text-decoration-color: rgba(167, 139, 250, 0.3);
+  text-decoration-color: rgba(192, 132, 252, 0.4);
   text-underline-offset: 3px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 .obsidian-internal-link:hover {
-  color: #c4b5fd;
-  text-decoration-color: #c4b5fd;
+  color: #ffffff;
+  text-decoration-color: #ffffff;
 }
 
-/* CodeMirror Obsidian Clean Theme */
+/* CodeMirror Modern Flat Clean Theme */
 .codemirror-obsidian .cm-editor {
   background-color: transparent !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
   font-size: 13.5px !important;
 }
 .codemirror-obsidian .cm-gutters {
-  background-color: #181818 !important;
-  border-right: 1px solid #282828 !important;
-  color: #555555 !important;
+  background-color: #000000 !important;
+  border-right: 1px solid #27272a !important;
+  color: #71717a !important;
 }
 
-/* Obsidian Typography Styles */
+/* Modern Minimalist Prose Typography */
 .prose-obsidian h1 {
-  font-size: 1.85rem;
-  font-weight: 700;
+  font-size: 1.95rem;
+  font-weight: 800;
   color: #ffffff;
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
   margin-bottom: 1rem;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 .prose-obsidian h2 {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #f3f3f3;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #ffffff;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .prose-obsidian h3 {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: #e5e5e5;
+  color: #f4f4f5;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
 }
 
 .prose-obsidian p {
-  line-height: 1.7;
-  color: #cccccc;
-  margin-bottom: 0.85rem;
+  line-height: 1.75;
+  color: #d4d4d8;
+  margin-bottom: 0.9rem;
   font-size: 0.95rem;
 }
 
@@ -212,69 +221,71 @@ table .katex .mfrac,
   list-style-type: disc;
   padding-left: 1.25rem;
   margin-bottom: 1rem;
-  color: #cccccc;
+  color: #d4d4d8;
 }
 
 .prose-obsidian li {
-  margin-bottom: 0.35rem;
-  line-height: 1.6;
+  margin-bottom: 0.4rem;
+  line-height: 1.65;
 }
 
 .prose-obsidian code {
-  background-color: rgba(255, 255, 255, 0.07);
-  padding: 0.15rem 0.35rem;
-  border-radius: 3px;
+  background-color: #18181b;
+  border: 1px solid #27272a;
+  color: #e9d5ff;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
   font-size: 0.875em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
 
-/* Visual WYSIWYG Editor in Mis Notas */
+/* Modern Flat Visual WYSIWYG Editor */
 .visual-notes-editor {
   outline: none;
   min-height: 100%;
 }
 
 .visual-notes-editor h1 {
-  font-size: 1.65rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: #ffffff;
   border-bottom: 2px solid #7c3aed;
-  padding-bottom: 6px;
-  margin-top: 20px;
-  margin-bottom: 12px;
+  padding-bottom: 8px;
+  margin-top: 24px;
+  margin-bottom: 14px;
   line-height: 1.3;
 }
 
 .visual-notes-editor h2 {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  color: #f3e8ff;
-  border-bottom: 1px solid rgba(147, 51, 234, 0.3);
-  padding-bottom: 4px;
-  margin-top: 18px;
-  margin-bottom: 10px;
+  color: #ffffff;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.4);
+  padding-bottom: 6px;
+  margin-top: 20px;
+  margin-bottom: 12px;
   line-height: 1.35;
 }
 
 .visual-notes-editor h3 {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: #d8b4fe;
-  margin-top: 14px;
-  margin-bottom: 8px;
+  color: #f4f4f5;
+  margin-top: 16px;
+  margin-bottom: 10px;
   line-height: 1.4;
 }
 
 .visual-notes-editor p {
-  margin-bottom: 10px;
-  color: #e2e8f0;
-  line-height: 1.65;
-  font-size: 14px;
+  margin-bottom: 12px;
+  color: #e4e4e7;
+  line-height: 1.7;
+  font-size: 14.5px;
 }
 
 .visual-notes-editor u {
   text-decoration: underline;
-  text-decoration-color: #a855f7;
+  text-decoration-color: #7c3aed;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
 }
@@ -285,7 +296,7 @@ table .katex .mfrac,
   text-decoration: line-through;
   text-decoration-color: #f43f5e;
   text-decoration-thickness: 1.5px;
-  color: #94a3b8;
+  color: #a1a1aa;
 }
 
 .visual-notes-editor b,
@@ -297,56 +308,56 @@ table .katex .mfrac,
 .visual-notes-editor i,
 .visual-notes-editor em {
   font-style: italic;
-  color: #e9d5ff;
+  color: #d8b4fe;
 }
 
 .visual-notes-editor code:not(pre code) {
-  font-family: 'Fira Code', 'Consolas', monospace;
-  background: rgba(88, 28, 135, 0.4);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: #18181b;
   color: #e9d5ff;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.9em;
-  border: 1px solid rgba(147, 51, 234, 0.3);
+  border: 1px solid #27272a;
 }
 
 .visual-notes-editor pre {
-  background: #0f0a18;
-  border: 1px solid rgba(147, 51, 234, 0.4);
+  background: #000000;
+  border: 1px solid #27272a;
   border-radius: 8px;
-  padding: 12px 16px;
-  margin: 14px 0;
+  padding: 14px 18px;
+  margin: 16px 0;
   overflow-x: auto;
-  font-family: 'Fira Code', 'Consolas', monospace;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 13px;
-  color: #a78bfa;
+  color: #c084fc;
 }
 
 .visual-notes-editor ul {
   list-style-type: disc;
   padding-left: 24px;
-  margin-bottom: 10px;
-  color: #e2e8f0;
+  margin-bottom: 12px;
+  color: #e4e4e7;
 }
 
 .visual-notes-editor ol {
   list-style-type: decimal;
   padding-left: 24px;
-  margin-bottom: 10px;
-  color: #e2e8f0;
+  margin-bottom: 12px;
+  color: #e4e4e7;
 }
 
 .visual-notes-editor li {
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .visual-notes-editor blockquote {
   border-left: 4px solid #7c3aed;
-  padding: 8px 16px;
-  margin: 12px 0;
+  padding: 10px 16px;
+  margin: 14px 0;
   background: rgba(124, 58, 237, 0.08);
-  border-radius: 0 6px 6px 0;
-  color: #c4b5fd;
+  border-radius: 0 8px 8px 0;
+  color: #e9d5ff;
   font-style: italic;
 }
 

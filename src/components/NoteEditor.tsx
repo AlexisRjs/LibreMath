@@ -70,44 +70,44 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   const lineCount = code.split('\n').length;
 
   return (
-    <div className="flex flex-col h-full bg-[#110d1a] text-slate-200 border border-purple-900/40 rounded-xl overflow-hidden shadow-2xl">
-      {/* Editor Toolbar (Obsidian style) */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#161022] border-b border-purple-900/40 text-xs">
+    <div className="flex flex-col h-full bg-[#09090b] text-white border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
+      {/* Editor Toolbar */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-black border-b border-zinc-800 text-xs">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-mono text-purple-300 font-medium">
-            <Code className="w-4 h-4 text-purple-400" />
+          <div className="flex items-center gap-1.5 font-mono text-white font-semibold">
+            <Code className="w-4 h-4 text-[#a78bfa]" />
             <span>{topic.moduleId}/{topic.slug}.md</span>
           </div>
-          <span className="text-purple-700">|</span>
-          <span className="text-slate-400">CodeMirror 6</span>
+          <span className="text-zinc-700">|</span>
+          <span className="text-zinc-400 font-mono text-[11px]">CodeMirror 6</span>
         </div>
 
         {/* Snippet Insert Tools */}
-        <div className="hidden sm:flex items-center gap-1">
+        <div className="hidden sm:flex items-center gap-1.5">
           <button
             onClick={() => handleInsertSnippet('$$\n\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)\n$$')}
-            className="px-2 py-1 rounded bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/40 transition-colors"
+            className="px-2.5 py-1 rounded-md bg-[#0e0e12] hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 transition-colors text-xs font-mono cursor-pointer"
             title="Insertar Bloque Matemático KaTeX"
           >
             $$ LaTeX $$
           </button>
           <button
             onClick={() => handleInsertSnippet('> [!NOTE]\n> Explicación o propiedad teórica relevante')}
-            className="px-2 py-1 rounded bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/40 transition-colors"
+            className="px-2.5 py-1 rounded-md bg-[#0e0e12] hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 transition-colors text-xs font-mono cursor-pointer"
             title="Insertar Callout Obsidian"
           >
             [!NOTE]
           </button>
           <button
             onClick={() => handleInsertSnippet('> [!TIP]\n> Consejo práctico o regla mnemotécnica')}
-            className="px-2 py-1 rounded bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/40 transition-colors"
+            className="px-2.5 py-1 rounded-md bg-[#0e0e12] hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 transition-colors text-xs font-mono cursor-pointer"
             title="Insertar Callout TIP"
           >
             [!TIP]
           </button>
           <button
             onClick={() => handleInsertSnippet('[[nombre-del-tema]]')}
-            className="px-2 py-1 rounded bg-purple-950/60 hover:bg-purple-900 text-purple-300 border border-purple-800/40 transition-colors font-mono"
+            className="px-2.5 py-1 rounded-md bg-[#0e0e12] hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 transition-colors font-mono text-xs cursor-pointer"
             title="Insertar Wiki Link Obsidian"
           >
             [[Link]]
@@ -119,10 +119,10 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold text-xs transition-all cursor-pointer ${
               savedStatus === 'saved'
-                ? 'bg-purple-950/80 text-purple-300 border border-purple-800/40'
-                : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/30'
+                ? 'bg-zinc-900 text-zinc-300 border border-zinc-800'
+                : 'bg-[#7c3aed] hover:bg-[#8b5cf6] text-white shadow-xs'
             }`}
           >
             {savedStatus === 'saved' ? (
@@ -141,7 +141,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
       </div>
 
       {/* CodeMirror 6 Active Canvas */}
-      <div className="flex-1 overflow-auto text-sm font-mono leading-relaxed p-1">
+      <div className="flex-1 overflow-auto text-sm font-mono leading-relaxed p-1 bg-[#09090b]">
         <CodeMirror
           value={code}
           height="100%"
@@ -155,16 +155,16 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         />
       </div>
 
-      {/* Obsidian Status Bar at Bottom of Editor */}
-      <div className="flex items-center justify-between px-4 py-1.5 bg-[#120c1c] border-t border-purple-900/30 text-[11px] text-purple-300/70 font-mono">
+      {/* Status Bar at Bottom of Editor */}
+      <div className="flex items-center justify-between px-4 py-1.5 bg-black border-t border-zinc-800 text-[11px] text-zinc-400 font-mono">
         <div className="flex items-center gap-4">
           <span>{lineCount} líneas</span>
           <span>{wordCount} palabras</span>
           <span>{code.length} caracteres</span>
         </div>
         <div className="flex items-center gap-2">
-          <Sparkles className="w-3 h-3 text-purple-400" />
-          <span>Obsidian Live Engine</span>
+          <Sparkles className="w-3 h-3 text-[#a78bfa]" />
+          <span>IngeData Markdown Engine</span>
         </div>
       </div>
     </div>

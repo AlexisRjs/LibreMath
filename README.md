@@ -54,9 +54,10 @@ Tauri combina **la velocidad y el bajísimo consumo de Rust** en el backend con 
 - ⚛️ **Renderizado Matemático $\LaTeX$**: Ecuaciones nítidas y de alta precisión tipográfica gracias a KaTeX.
 - 🕸️ **Grafo Interactivo de Conceptos**: Mapa conceptual interactivo con física de fuerzas (D3.js) para navegar entre temas correlacionados.
 - 📝 **Editor de Notas Integrado**: Editor Markdown con resaltado de sintaxis (CodeMirror) que guarda cambios directamente en archivos `.md` locales.
-- 🧮 **Calculadoras de Ingeniería**:
-  - Evaluador de fórmulas y expresiones matemáticas.
-  - Calculadora de operaciones matriciales (suma, producto, determinantes, inversa).
+- 📐 **Banco de Fórmulas $\LaTeX$**:
+  - Banco y catálogo centralizado de fórmulas en código LaTeX plano y visualización matemática.
+- 🧮 **Calculadora Matricial**:
+  - Operaciones con matrices (suma, producto, determinante, transpuesta e inversa hasta 5x5).
 - 🔍 **Buscador Instantáneo**: Command Palette (`Ctrl + K`) con búsqueda difusa (Fuzzy Search) para encontrar fórmulas, leyes y definiciones en milisegundos.
 - 💾 **100% Offline**: Funciona completamente desconectado de internet; no requiere cuentas, servidores ni suscripciones.
 

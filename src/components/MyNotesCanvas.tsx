@@ -442,19 +442,19 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   const lineCount = content.split('\n').length;
 
   return (
-    <div className="flex h-full w-full bg-[#14101e] text-slate-200 select-none overflow-hidden font-sans">
+    <div className="flex h-full w-full bg-[#09090b] text-white select-none overflow-hidden font-sans">
       {/* 1. Left Drawer: Notes List */}
-      <aside className="w-56 h-full bg-[#110d19] border-r border-purple-950/60 flex flex-col shrink-0 select-none">
+      <aside className="w-56 h-full bg-black border-r border-zinc-800 flex flex-col shrink-0 select-none">
         {/* Header */}
-        <div className="p-3 border-b border-purple-950/60 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-purple-300 font-semibold text-xs">
-            <PenTool className="w-3.5 h-3.5 text-purple-400" />
+        <div className="p-3 border-b border-zinc-800 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-white font-semibold text-xs">
+            <PenTool className="w-3.5 h-3.5 text-[#a78bfa]" />
             <span>Mis Notas</span>
           </div>
 
           <button
             onClick={handleCreateNewNote}
-            className="p-1 rounded bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-800/40 transition-colors text-xs flex items-center gap-1"
+            className="px-2 py-1 rounded-md bg-[#7c3aed] hover:bg-[#8b5cf6] text-white font-semibold transition-colors text-xs flex items-center gap-1 shadow-xs"
             title="Crear nueva nota en blanco"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -465,8 +465,8 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         {/* Notes Items List */}
         <div className="flex-1 overflow-y-auto p-1.5 space-y-1">
           {userNotes.length === 0 ? (
-            <div className="p-4 text-center text-[#777777] text-xs font-sans">
-              No tienes notas aún. Haz clic en "Nueva" para comenzar.
+            <div className="p-4 text-center text-zinc-500 text-xs font-sans">
+              No tienes notas aún. Haz clic en &quot;Nueva&quot; para comenzar.
             </div>
           ) : (
             userNotes.map(note => {
@@ -474,26 +474,26 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
               return (
                 <div
                   key={note.slug}
-                  className="flex items-center group/note rounded-lg transition-colors pr-1"
+                  className="flex items-center group/note rounded-md transition-colors pr-1"
                 >
                   <button
                     onClick={() => {
                       setActiveNote(note);
                       onTopicSelect?.(note);
                     }}
-                    className={`flex-1 text-left p-2 rounded-lg text-xs transition-colors flex items-center gap-2 min-w-0 ${
+                    className={`flex-1 text-left p-2 rounded-md text-xs transition-all flex items-center gap-2 min-w-0 ${
                       isSelected
-                        ? 'bg-purple-950/90 text-white font-medium border border-purple-800/60 shadow-md shadow-purple-950/50'
-                        : 'text-slate-400 hover:bg-[#1a1426] hover:text-slate-200'
+                        ? 'bg-[#7c3aed]/15 text-white font-semibold border-l-2 border-[#7c3aed]'
+                        : 'text-zinc-400 hover:bg-zinc-900/60 hover:text-white'
                     }`}
                   >
-                    <FileText className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-purple-400' : 'text-[#666666]'}`} />
+                    <FileText className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-[#a78bfa]' : 'text-zinc-600'}`} />
                     <span className="truncate flex-1">{note.title}</span>
                   </button>
 
                   <button
                     onClick={(e) => handleDeleteNote(note, e)}
-                    className="p-1 rounded text-purple-400/50 hover:text-rose-400 hover:bg-rose-950/40 opacity-0 group-hover/note:opacity-100 transition-all shrink-0 ml-1"
+                    className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-950/40 opacity-0 group-hover/note:opacity-100 transition-all shrink-0 ml-1"
                     title="Eliminar esta nota definitivamente"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -505,37 +505,37 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="p-2 border-t border-purple-950/60 text-[10px] text-[#777777] text-center font-mono">
+        <div className="p-2 border-t border-zinc-800 text-[10px] text-zinc-500 text-center font-mono">
           {userNotes.length} notas personales
         </div>
       </aside>
 
       {/* 2. Main Writing Canvas Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#161122]">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#09090b]">
         {/* Top Header Bar */}
-        <div className="px-6 py-2.5 bg-[#171224] border-b border-purple-950/50 flex items-center justify-between shrink-0">
+        <div className="px-6 py-2.5 bg-black border-b border-zinc-800 flex items-center justify-between shrink-0">
           {/* Note Title Input Directly on Canvas */}
           <div className="flex items-center gap-2 flex-1 min-w-0 mr-4">
-            <span className="text-purple-400 text-sm font-mono font-bold">#</span>
+            <span className="text-[#a78bfa] text-sm font-mono font-bold">#</span>
             <input
               type="text"
               value={noteTitle}
               onChange={e => handleTitleChange(e.target.value)}
               placeholder="Título del apunte..."
-              className="bg-transparent border-b border-transparent hover:border-purple-800/40 focus:border-purple-500 text-base sm:text-lg font-bold text-white outline-none w-full transition-colors select-text"
+              className="bg-transparent border-b border-transparent hover:border-zinc-700 focus:border-[#7c3aed] text-base sm:text-lg font-bold text-white outline-none w-full transition-colors select-text placeholder:text-zinc-600"
             />
           </div>
 
           {/* Quick Controls & Status */}
           <div className="flex items-center gap-2 shrink-0">
             {/* Editor Mode Selector: Visual WYSIWYG vs Raw Markdown */}
-            <div className="flex items-center bg-[#1b152d] border border-purple-900/50 rounded-lg p-0.5 text-xs">
+            <div className="flex items-center bg-black border border-zinc-800 rounded-lg p-0.5 text-xs">
               <button
                 onClick={() => handleSwitchMode('visual')}
-                className={`px-2.5 py-1 rounded flex items-center gap-1.5 transition-colors ${
+                className={`px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-all ${
                   editorMode === 'visual'
-                    ? 'bg-purple-600 text-white font-medium shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-black font-semibold shadow-xs'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
                 title="Modo visual en vivo (ves el formato aplicado sin símbolos markdown)"
               >
@@ -544,10 +544,10 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
               </button>
               <button
                 onClick={() => handleSwitchMode('markdown')}
-                className={`px-2.5 py-1 rounded flex items-center gap-1.5 transition-colors ${
+                className={`px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-all ${
                   editorMode === 'markdown'
-                    ? 'bg-purple-600 text-white font-medium shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-black font-semibold shadow-xs'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
                 title="Modo código Markdown"
               >
@@ -557,16 +557,16 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
             </div>
 
             {/* Save Status Badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-950/50 border border-purple-900/40 text-[11px] font-mono">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-mono">
               {saveStatus === 'saved' ? (
                 <>
                   <Check className="w-3 h-3 text-emerald-400" />
-                  <span className="text-emerald-400/90">Guardado auto</span>
+                  <span className="text-emerald-400">Guardado</span>
                 </>
               ) : saveStatus === 'saving' ? (
                 <>
-                  <Sparkles className="w-3 h-3 text-purple-400 animate-spin" />
-                  <span className="text-purple-300">Guardando...</span>
+                  <Sparkles className="w-3 h-3 text-[#a78bfa] animate-spin" />
+                  <span className="text-[#a78bfa]">Guardando...</span>
                 </>
               ) : (
                 <span className="text-amber-400">Sin guardar</span>
@@ -576,10 +576,10 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
             {/* Split Preview Toggle */}
             <button
               onClick={() => setViewLayout(prev => (prev === 'canvas-only' ? 'split' : 'canvas-only'))}
-              className={`p-1.5 rounded-lg border transition-colors flex items-center gap-1 text-xs ${
+              className={`p-1.5 rounded-lg border transition-all flex items-center gap-1 text-xs ${
                 viewLayout === 'split'
-                  ? 'bg-purple-600 border-purple-500 text-white'
-                  : 'bg-[#1b152d] border-purple-900/40 text-slate-300 hover:text-white'
+                  ? 'bg-[#7c3aed] border-[#7c3aed] text-white font-medium'
+                  : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
               }`}
               title={viewLayout === 'split' ? 'Ocultar vista previa dividida' : 'Ver pantalla dividida con vista previa'}
             >
@@ -591,39 +591,39 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
             <div className="relative">
               <button
                 onClick={() => setIsOptionsMenuOpen(prev => !prev)}
-                className="p-1.5 rounded-lg border border-purple-900/40 bg-[#1b152d] text-slate-300 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white transition-colors"
                 title="Más opciones"
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
               </button>
 
               {isOptionsMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-48 bg-[#181324] border border-purple-800/50 rounded-lg shadow-xl shadow-black/60 py-1 z-50 text-xs text-slate-200 font-sans">
+                <div className="absolute right-0 top-full mt-1.5 w-48 bg-[#0e0e12] border border-zinc-800 rounded-xl shadow-2xl shadow-black py-1 z-50 text-xs text-zinc-200 font-sans animate-in fade-in zoom-in-95 duration-100">
                   <button
                     onClick={handleExportPdf}
-                    className="w-full px-3 py-1.5 hover:bg-purple-900/50 flex items-center gap-2 text-left transition-colors"
+                    className="w-full px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-left transition-colors"
                   >
-                    <FileDown className="w-3.5 h-3.5 text-purple-400" />
+                    <FileDown className="w-3.5 h-3.5 text-[#a78bfa]" />
                     <span>Exportar como PDF</span>
                   </button>
                   <button
                     onClick={handleCopyMarkdown}
-                    className="w-full px-3 py-1.5 hover:bg-purple-900/50 flex items-center gap-2 text-left transition-colors"
+                    className="w-full px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-left transition-colors"
                   >
                     {copiedMarkdown ? (
                       <Check className="w-3.5 h-3.5 text-emerald-400" />
                     ) : (
-                      <Copy className="w-3.5 h-3.5 text-slate-400" />
+                      <Copy className="w-3.5 h-3.5 text-zinc-400" />
                     )}
                     <span>{copiedMarkdown ? '¡Copiado!' : 'Copiar Markdown'}</span>
                   </button>
-                  <div className="h-[1px] bg-purple-950/60 my-1" />
+                  <div className="h-[1px] bg-zinc-800 my-1" />
                   <button
                     onClick={() => {
                       setIsOptionsMenuOpen(false);
                       handleDeleteNote(activeNote);
                     }}
-                    className="w-full px-3 py-1.5 hover:bg-rose-950/60 flex items-center gap-2 text-left text-rose-400 transition-colors"
+                    className="w-full px-3 py-2 hover:bg-rose-950/60 flex items-center gap-2 text-left text-rose-400 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Eliminar nota</span>
@@ -635,76 +635,76 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         </div>
 
         {/* Quick Format Ribbon */}
-        <div className="px-6 py-1.5 bg-[#140e21] border-b border-purple-950/40 flex items-center gap-1 overflow-x-auto text-xs text-slate-300">
-          <span className="text-[10px] font-mono text-purple-400/80 mr-1 shrink-0">
-            {editorMode === 'visual' ? 'Formato visual:' : 'Atajos Markdown:'}
+        <div className="px-6 py-1.5 bg-[#0e0e12] border-b border-zinc-800 flex items-center gap-1 overflow-x-auto text-xs text-zinc-300">
+          <span className="text-[10px] font-mono text-zinc-500 mr-1 shrink-0">
+            {editorMode === 'visual' ? 'Formato:' : 'Markdown:'}
           </span>
 
           <button
             onClick={() => applyFormat('h1')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 font-medium"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors"
             title="Formatear como Título 1 (H1)"
           >
-            <Heading1 className="w-3.5 h-3.5 text-purple-400" />
+            <Heading1 className="w-3.5 h-3.5 text-[#a78bfa]" />
             <span className="text-[11px]">T1</span>
           </button>
           <button
             onClick={() => applyFormat('h2')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 font-medium"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors"
             title="Formatear como Título 2 (H2)"
           >
-            <Heading2 className="w-3.5 h-3.5 text-purple-400" />
+            <Heading2 className="w-3.5 h-3.5 text-[#a78bfa]" />
             <span className="text-[11px]">T2</span>
           </button>
           <button
             onClick={() => applyFormat('h3')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 font-medium"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors"
             title="Formatear como Título 3 (H3)"
           >
-            <Heading3 className="w-3.5 h-3.5 text-purple-400" />
+            <Heading3 className="w-3.5 h-3.5 text-[#a78bfa]" />
             <span className="text-[11px]">T3</span>
           </button>
 
-          <span className="text-purple-900 mx-1">|</span>
+          <span className="text-zinc-700 mx-1">|</span>
 
           <button
             onClick={() => applyFormat('bold')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 font-bold"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-bold transition-colors"
             title="Negrita (Ctrl+B)"
           >
-            <Bold className="w-3.5 h-3.5 text-purple-400" />
+            <Bold className="w-3.5 h-3.5 text-zinc-400" />
             <span className="text-[11px]">Negrita</span>
           </button>
           <button
             onClick={() => applyFormat('italic')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0 italic"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 italic transition-colors"
             title="Cursiva (Ctrl+I)"
           >
-            <Italic className="w-3.5 h-3.5 text-purple-400" />
+            <Italic className="w-3.5 h-3.5 text-zinc-400" />
             <span className="text-[11px]">Cursiva</span>
           </button>
           <button
             onClick={() => applyFormat('underline')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors"
             title="Subrayar texto (Ctrl+U)"
           >
-            <Underline className="w-3.5 h-3.5 text-purple-400" />
+            <Underline className="w-3.5 h-3.5 text-[#a78bfa]" />
             <span className="text-[11px] underline">Subrayado</span>
           </button>
           <button
             onClick={() => applyFormat('strike')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors"
             title="Rayar / Tachar texto"
           >
-            <Strikethrough className="w-3.5 h-3.5 text-purple-400" />
+            <Strikethrough className="w-3.5 h-3.5 text-zinc-400" />
             <span className="text-[11px] line-through">Rayado</span>
           </button>
 
-          <span className="text-purple-900 mx-1">|</span>
+          <span className="text-zinc-700 mx-1">|</span>
 
           <button
             onClick={() => applyFormat('math')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors"
             title="Insertar bloque de fórmula matemática KaTeX"
           >
             <Sigma className="w-3.5 h-3.5 text-emerald-400" />
@@ -712,7 +712,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
           </button>
           <button
             onClick={() => applyFormat('code')}
-            className="px-2 py-0.5 rounded hover:bg-purple-900/50 hover:text-white flex items-center gap-1 shrink-0"
+            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors"
             title="Bloque de código de programación"
           >
             <Code className="w-3.5 h-3.5 text-amber-400" />
@@ -723,7 +723,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         {/* 3. The Pure Writing Canvas */}
         <div className="flex-1 flex overflow-hidden relative">
           {/* Main Writing Canvas (Visual WYSIWYG or Markdown) */}
-          <div className={`h-full flex flex-col ${viewLayout === 'split' ? 'w-1/2 border-r border-purple-950/60' : 'w-full'}`}>
+          <div className={`h-full flex flex-col ${viewLayout === 'split' ? 'w-1/2 border-r border-zinc-800' : 'w-full'}`}>
             {editorMode === 'visual' ? (
               <div
                 ref={visualEditorRef}
@@ -732,7 +732,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                 onInput={handleVisualInput}
                 onContextMenu={handleContextMenu}
                 data-placeholder="Escribe directamente aquí tus apuntes... (El formato se ve aplicado en tiempo real)"
-                className="visual-notes-editor flex-1 w-full h-full p-6 sm:p-8 bg-[#151020] text-slate-100 outline-none overflow-y-auto leading-relaxed selection:bg-purple-600/40 select-text font-sans"
+                className="visual-notes-editor flex-1 w-full h-full p-6 sm:p-8 bg-[#09090b] text-white outline-none overflow-y-auto leading-relaxed selection:bg-[#7c3aed]/40 select-text font-sans"
               />
             ) : (
               <textarea
@@ -742,15 +742,15 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
                 onContextMenu={handleContextMenu}
                 autoFocus
                 placeholder="Escribe en formato Markdown aquí..."
-                className="flex-1 w-full h-full p-6 sm:p-8 bg-[#151020] text-slate-100 font-mono text-sm leading-relaxed outline-none resize-none placeholder:text-[#555555] selection:bg-purple-600/40 select-text"
+                className="flex-1 w-full h-full p-6 sm:p-8 bg-[#09090b] text-white font-mono text-sm leading-relaxed outline-none resize-none placeholder:text-zinc-600 selection:bg-[#7c3aed]/40 select-text"
               />
             )}
           </div>
 
           {/* Optional Split Live Preview Canvas */}
           {viewLayout === 'split' && (
-            <div className="w-1/2 h-full overflow-y-auto p-6 sm:p-8 bg-[#171225] select-text">
-              <div className="text-[11px] font-mono text-purple-400/80 uppercase tracking-wider mb-4 pb-2 border-b border-purple-900/40 flex items-center gap-1.5">
+            <div className="w-1/2 h-full overflow-y-auto p-6 sm:p-8 bg-black/40 select-text">
+              <div className="text-[11px] font-mono text-[#a78bfa] uppercase tracking-wider mb-4 pb-2 border-b border-zinc-800 flex items-center gap-1.5">
                 <Eye className="w-3.5 h-3.5" />
                 <span>Previsualización en tiempo real</span>
               </div>
@@ -760,97 +760,97 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
             </div>
           )}
 
-          {/* 4. Sleek Right-Click Floating Context Menu */}
+          {/* 4. Modern Flat Context Menu */}
           {contextMenu && (
             <div
               style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
               onClick={e => e.stopPropagation()}
-              className="fixed z-50 w-56 rounded-xl bg-[#160f25] border border-purple-800/70 shadow-2xl shadow-black/80 py-1.5 text-xs text-slate-200 backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 select-none"
+              className="fixed z-50 w-56 rounded-xl bg-[#0e0e12] border border-zinc-800 shadow-2xl shadow-black py-1.5 text-xs text-white backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 select-none"
             >
               {/* Size Section */}
-              <div className="px-3 py-1 text-[10px] font-mono text-purple-300/70 uppercase tracking-wider">
+              <div className="px-3 py-1 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
                 Tamaño de Texto
               </div>
               <button
                 onClick={() => applyFormat('h1')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800/80 flex items-center justify-between text-white transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <Heading1 className="w-4 h-4 text-purple-400" />
+                  <Heading1 className="w-4 h-4 text-[#a78bfa]" />
                   <span className="font-semibold text-sm">Título 1</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">Grande</span>
+                <span className="text-[10px] font-mono text-zinc-500">Grande</span>
               </button>
               <button
                 onClick={() => applyFormat('h2')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800/80 flex items-center justify-between text-white transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <Heading2 className="w-4 h-4 text-purple-400" />
+                  <Heading2 className="w-4 h-4 text-[#a78bfa]" />
                   <span className="font-medium text-xs">Título 2</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">Mediano</span>
+                <span className="text-[10px] font-mono text-zinc-500">Mediano</span>
               </button>
               <button
                 onClick={() => applyFormat('h3')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800/80 flex items-center justify-between text-white transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <Heading3 className="w-4 h-4 text-purple-400" />
+                  <Heading3 className="w-4 h-4 text-[#a78bfa]" />
                   <span className="text-xs">Título 3</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">Subsección</span>
+                <span className="text-[10px] font-mono text-zinc-500">Subsección</span>
               </button>
               <button
                 onClick={() => applyFormat('common')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800/80 flex items-center justify-between text-white transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#888888]" />
+                  <FileText className="w-4 h-4 text-zinc-400" />
                   <span>Texto común</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">Normal</span>
+                <span className="text-[10px] font-mono text-zinc-500">Normal</span>
               </button>
 
-              <div className="h-[1px] bg-purple-900/40 my-1" />
+              <div className="h-[1px] bg-zinc-800 my-1" />
 
               {/* Format Section */}
-              <div className="px-3 py-1 text-[10px] font-mono text-purple-300/70 uppercase tracking-wider">
+              <div className="px-3 py-1 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
                 Formato Aplicado
               </div>
               <button
                 onClick={() => applyFormat('bold')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors font-bold"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800/80 flex items-center justify-between text-white transition-colors font-bold"
               >
                 <div className="flex items-center gap-2">
-                  <Bold className="w-4 h-4 text-purple-400" />
+                  <Bold className="w-4 h-4 text-[#a78bfa]" />
                   <span>Negrita</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">Ctrl+B</span>
+                <span className="text-[10px] font-mono text-zinc-500">Ctrl+B</span>
               </button>
               <button
                 onClick={() => applyFormat('italic')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors italic"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800/80 flex items-center justify-between text-white transition-colors italic"
               >
                 <div className="flex items-center gap-2">
-                  <Italic className="w-4 h-4 text-purple-400" />
+                  <Italic className="w-4 h-4 text-[#a78bfa]" />
                   <span>Cursiva</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">Ctrl+I</span>
+                <span className="text-[10px] font-mono text-zinc-500">Ctrl+I</span>
               </button>
               <button
                 onClick={() => applyFormat('underline')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800/80 flex items-center justify-between text-white transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <Underline className="w-4 h-4 text-purple-400" />
+                  <Underline className="w-4 h-4 text-[#a78bfa]" />
                   <span className="underline">Subrayado</span>
                 </div>
-                <span className="text-[10px] font-mono text-purple-400/80">Ctrl+U</span>
+                <span className="text-[10px] font-mono text-[#a78bfa]">Ctrl+U</span>
               </button>
               <button
                 onClick={() => applyFormat('strike')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800 flex items-center justify-between text-zinc-300 hover:text-white transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <Strikethrough className="w-4 h-4 text-rose-400" />
@@ -860,7 +860,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
               </button>
               <button
                 onClick={() => applyFormat('math')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800 flex items-center justify-between text-zinc-300 hover:text-white transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <Sigma className="w-4 h-4 text-emerald-400" />
@@ -870,7 +870,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
               </button>
               <button
                 onClick={() => applyFormat('code')}
-                className="w-full text-left px-3 py-1.5 hover:bg-purple-900/50 flex items-center justify-between text-slate-200 transition-colors"
+                className="w-full text-left px-3 py-1.5 hover:bg-zinc-800 flex items-center justify-between text-zinc-300 hover:text-white transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <Code className="w-4 h-4 text-amber-400" />
@@ -883,19 +883,19 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         </div>
 
         {/* Bottom Status Bar */}
-        <div className="h-6 px-6 bg-[#130f1e] border-t border-purple-950/50 flex items-center justify-between text-[11px] text-[#777777] font-mono">
+        <div className="h-6 px-6 bg-black border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
           <div className="flex items-center gap-4">
             <span>{lineCount} líneas</span>
             <span>{wordCount} palabras</span>
             <span>{content.length} caracteres</span>
-            <span className="text-purple-400/70">
+            <span className="text-[#a78bfa]">
               Modo: {editorMode === 'visual' ? 'Visual en vivo' : 'Markdown'}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-purple-400/80">
+          <div className="flex items-center gap-2 text-[#a78bfa]">
             <Sparkles className="w-3 h-3" />
-            <span>Lienzo Activo LibreMath</span>
+            <span>Lienzo Activo IngeData</span>
           </div>
         </div>
       </main>
