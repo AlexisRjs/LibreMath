@@ -133,7 +133,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setViewMode(prev => (prev === 'reading' ? 'editor' : 'reading'))}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs transition-all ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs transition-all duration-150 hover:scale-105 active:scale-95 ${
               viewMode === 'editor'
                 ? 'bg-[#7c3aed] text-white font-semibold shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
@@ -153,7 +153,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
           <div className="relative">
             <button
               onClick={() => setIsOptionsMenuOpen(prev => !prev)}
-              className={`p-1.5 rounded-md transition-colors ${
+              className={`p-1.5 rounded-md transition-all duration-150 hover:scale-105 active:scale-90 ${
                 isOptionsMenuOpen
                   ? 'bg-zinc-800 text-white'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
@@ -165,7 +165,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
 
             {isOptionsMenuOpen && (
               <div
-                className="absolute right-0 top-full mt-1.5 w-48 bg-[#0e0e12] border border-zinc-800 rounded-xl shadow-2xl shadow-black py-1.5 z-50 text-xs text-zinc-200 animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 top-full mt-1.5 w-48 bg-[#0e0e12] border border-zinc-800 rounded-xl shadow-2xl shadow-purple-950/20 py-1.5 z-50 text-xs text-zinc-200 animate-modal-pop"
                 onClick={e => e.stopPropagation()}
               >
                 <button
@@ -182,7 +182,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
                 >
                   {copiedMarkdown ? (
                     <>
-                      <Check className="w-4 h-4 text-emerald-400" />
+                      <Check className="w-4 h-4 text-emerald-400 animate-in zoom-in-75 duration-150" />
                       <span className="text-emerald-400 font-medium">¡Copiado!</span>
                     </>
                   ) : (
@@ -211,8 +211,11 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
         </div>
       </div>
 
-      {/* 2. Main Content Canvas */}
-      <div className="flex-1 overflow-y-auto px-6 py-8 sm:px-12 max-w-5xl mx-auto w-full">
+      {/* 2. Main Content Canvas with smooth view transition */}
+      <div
+        key={`${topic.moduleId}-${topic.slug}`}
+        className="flex-1 overflow-y-auto px-6 py-8 sm:px-12 max-w-5xl mx-auto w-full animate-view-fade"
+      >
         {viewMode === 'editor' ? (
           <div className="h-[700px] w-full">
             <NoteEditor
@@ -241,7 +244,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
                 {topic.tags.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 rounded-md text-[11px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-[#7c3aed]/50 transition-colors"
+                    className="px-2 py-0.5 rounded-md text-[11px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-[#7c3aed]/50 hover:scale-105 active:scale-95 transition-all duration-150 cursor-default"
                   >
                     #{tag}
                   </span>
@@ -253,7 +256,7 @@ export const TopicViewer: React.FC<TopicViewerProps> = ({
             <div className="flex items-center gap-1 p-1 rounded-lg bg-black border border-zinc-800 w-fit text-xs">
               <button
                 onClick={() => setActiveTab('all')}
-                className={`px-3 py-1 rounded-md transition-all font-medium ${
+                className={`px-3 py-1 rounded-md transition-all duration-150 active:scale-95 font-medium ${
                   activeTab === 'all'
                     ? 'bg-white text-black shadow-xs font-semibold'
                     : 'text-zinc-400 hover:text-white'

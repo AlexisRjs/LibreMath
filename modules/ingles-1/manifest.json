@@ -1,0 +1,16 @@
+{
+  "id": "ingles-1",
+  "code": "ING1 - UTN FRRO",
+  "name": "Inglés I",
+  "description": "Cátedra UTN FRRO: Lectocomprensión técnica en ingeniería. Estructuras gramaticales, afijos, tiempos verbales y comprensión de manuales y especificaciones técnicas.",
+  "icon": "Languages",
+  "color": "blue",
+  "units": [
+    { "id": "u1", "title": "Unidad 1: Morfosintaxis Técnica y Tiempos Verbales" },
+    { "id": "u2", "title": "Unidad 2: Lectocomprensión, Manuales y Especificaciones Técnicas" }
+  ],
+  "topicSlugs": [
+    "gramatica-y-tiempos-verbales",
+    "lectocomprension-manuales-especificaciones"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "logica-y-estructuras-discretas",
+  "code": "LED - UTN FRRO",
+  "name": "Lógica y Estructuras Discretas",
+  "description": "Cátedra UTN FRRO: Lógica proposicional y de predicados, teoría de conjuntos, relaciones de equivalencia y orden, álgebra de Boole, compuertas lógicas, grafos y árboles.",
+  "icon": "Binary",
+  "color": "emerald",
+  "units": [
+    { "id": "u1", "title": "Unidad 1: Lógica Proposicional y Cálculo de Predicados" },
+    { "id": "u2", "title": "Unidad 2: Teoría de Conjuntos, Relaciones y Funciones" },
+    { "id": "u3", "title": "Unidad 3: Álgebra de Boole y Circuitos Lógicos" },
+    { "id": "u4", "title": "Unidad 4: Grafos, Árboles y Máquinas de Estado" }
+  ],
+  "topicSlugs": [
+    "logica-proposicional-y-predicados",
+    "conjuntos-relaciones-funciones",
+    "algebra-de-boole-y-circuitos",
+    "grafos-y-arboles"
+  ]
+}

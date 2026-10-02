@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
-import { TopicSummary, ModuleManifest } from '../types/modules';
+import { TopicSummary, ModuleManifest, UserFolder } from '../types/modules';
 import { ZoomIn, ZoomOut, RotateCcw, Filter, Network, Search, Sliders } from 'lucide-react';
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
   label: string;
-  type: 'module' | 'topic';
+  type: 'module' | 'topic' | 'folder';
   moduleId: string;
   moduleName: string;
   unit?: string;
+  folderName?: string;
   radius: number;
   color: string;
   formulaCount?: number;
@@ -24,12 +25,14 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
 interface GraphViewProps {
   manifests: ModuleManifest[];
   topics: TopicSummary[];
+  folders?: UserFolder[];
   onSelectTopic: (topic: TopicSummary) => void;
 }
 
 export const GraphView: React.FC<GraphViewProps> = ({
   manifests,
   topics,
+  folders = [],
   onSelectTopic,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -46,6 +49,12 @@ export const GraphView: React.FC<GraphViewProps> = ({
     'fisica-1': '#10b981', // Emerald
     am2: '#6366f1', // Indigo
     'fisica-2': '#f59e0b', // Amber
+    'ingles-1': '#3b82f6', // Blue
+    'logica-y-estructuras-discretas': '#059669', // Emerald Dark
+    'ingles-2': '#06b6d4', // Cyan
+    'probabilidad-y-estadistica': '#d97706', // Amber Dark
+    economia: '#a855f7', // Purple
+    'analisis-numerico': '#f43f5e', // Rose
   };
 
   // Build nodes & links
@@ -62,7 +71,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
     // 1. Add Module Hub Nodes with spacious distributed positions in a wide circle
     activeManifests.forEach((m, idx) => {
       const angle = (idx / activeManifests.length) * 2 * Math.PI - Math.PI / 2;
-      const initialR = activeManifests.length > 1 ? 520 : 0;
+      const initialR = activeManifests.length > 1 ? Math.max(520, activeManifests.length * 60) : 0;
       nList.push({
         id: `mod-${m.id}`,
         label: m.name,
@@ -91,15 +100,54 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
     activeManifests.forEach((m, mIdx) => {
       const modAngle = (mIdx / activeManifests.length) * 2 * Math.PI - Math.PI / 2;
-      const modX = Math.cos(modAngle) * (activeManifests.length > 1 ? 520 : 0);
-      const modY = Math.sin(modAngle) * (activeManifests.length > 1 ? 520 : 0);
+      const modX = Math.cos(modAngle) * (activeManifests.length > 1 ? Math.max(520, activeManifests.length * 60) : 0);
+      const modY = Math.sin(modAngle) * (activeManifests.length > 1 ? Math.max(520, activeManifests.length * 60) : 0);
       const modTopics = topicsByModule[m.id] || [];
 
+      // Discover distinct folders for this module (from user folders + notes)
+      const storedFolderNames = (folders || [])
+        .filter(f => f.moduleId === m.id)
+        .map(f => f.name);
+      const topicFolderNames = modTopics
+        .map(t => t.folder)
+        .filter(Boolean) as string[];
+      const moduleFolderNames = Array.from(
+        new Set([...storedFolderNames, ...topicFolderNames])
+      );
+
+      // Create Folder sub-hub nodes
+      moduleFolderNames.forEach((fName, fIdx) => {
+        const folderNodeId = `folder-${m.id}-${fName}`;
+        const folderAngle = modAngle + ((fIdx + 1) / (moduleFolderNames.length + 1)) * Math.PI - Math.PI / 2;
+        const folderDist = 130;
+
+        nList.push({
+          id: folderNodeId,
+          label: `📁 ${fName}`,
+          type: 'folder',
+          moduleId: m.id,
+          moduleName: m.name,
+          folderName: fName,
+          radius: 16,
+          color: '#c084fc', // Lilac for folders
+          x: modX + Math.cos(folderAngle) * folderDist,
+          y: modY + Math.sin(folderAngle) * folderDist,
+        });
+
+        // Link Module -> Folder
+        lList.push({
+          source: `mod-${m.id}`,
+          target: folderNodeId,
+          value: 2.5,
+        });
+      });
+
+      // Add Topic nodes
       modTopics.forEach((t, tIdx) => {
         const nodeId = `topic-${t.moduleId}-${t.slug}`;
         const baseColor = moduleColors[t.moduleId] || '#8b5cf6';
-        const topicAngle = (tIdx / modTopics.length) * 2 * Math.PI;
-        const initDist = 160;
+        const topicAngle = (tIdx / Math.max(1, modTopics.length)) * 2 * Math.PI;
+        const initDist = t.folder ? 220 : 160;
 
         nList.push({
           id: nodeId,
@@ -108,6 +156,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
           moduleId: t.moduleId,
           moduleName: t.moduleName,
           unit: t.unit,
+          folderName: t.folder,
           radius: Math.min(13, 7 + (t.formulaCount || 1) * 1.1),
           color: baseColor,
           formulaCount: t.formulaCount || 0,
@@ -115,17 +164,25 @@ export const GraphView: React.FC<GraphViewProps> = ({
           y: modY + Math.sin(topicAngle) * initDist,
         });
 
-        // Independent parent-child link only (pure starburst / solar system)
-        lList.push({
-          source: `mod-${t.moduleId}`,
-          target: nodeId,
-          value: 1,
-        });
+        // Hierarchical link: if topic has folder, link from Folder! Otherwise link from Module!
+        if (t.folder) {
+          lList.push({
+            source: `folder-${t.moduleId}-${t.folder}`,
+            target: nodeId,
+            value: 1.5,
+          });
+        } else {
+          lList.push({
+            source: `mod-${t.moduleId}`,
+            target: nodeId,
+            value: 1,
+          });
+        }
       });
     });
 
     return { nodes: nList, links: lList };
-  }, [manifests, topics, selectedModuleFilter]);
+  }, [manifests, topics, folders, selectedModuleFilter]);
 
   // D3 Simulation setup: generous radial spacing, strong subject separation, gentle center hold
   useEffect(() => {
@@ -187,7 +244,9 @@ export const GraphView: React.FC<GraphViewProps> = ({
         'charge',
         d3.forceManyBody().strength(d => {
           const node = d as GraphNode;
-          return node.type === 'module' ? -950 : -45;
+          if (node.type === 'module') return -950;
+          if (node.type === 'folder') return -240;
+          return -45;
         })
       )
       // Collision detection to prevent any nodes from overlapping
@@ -197,7 +256,9 @@ export const GraphView: React.FC<GraphViewProps> = ({
           .forceCollide()
           .radius(d => {
             const node = d as GraphNode;
-            return node.type === 'module' ? 42 : 24;
+            if (node.type === 'module') return 44;
+            if (node.type === 'folder') return 34;
+            return 24;
           })
           .strength(0.95)
       )
@@ -250,15 +311,16 @@ export const GraphView: React.FC<GraphViewProps> = ({
     node
       .append('circle')
       .attr('r', d => d.radius)
-      .attr('fill', d => d.color)
-      .attr('stroke', '#09090b')
+      .attr('fill', d => (d.type === 'folder' ? '#3b0764' : d.color))
+      .attr('stroke', d => (d.type === 'folder' ? '#c084fc' : '#09090b'))
       .attr('stroke-width', 2)
-      .attr('filter', d => (d.type === 'module' ? 'url(#glow)' : null))
+      .attr('stroke-dasharray', d => (d.type === 'folder' ? '3,2' : null))
+      .attr('filter', d => (d.type === 'module' || d.type === 'folder' ? 'url(#glow)' : null))
       .attr('opacity', 0.95);
 
     // Format label to concise title (Obsidian style) to avoid clutter, full title expands on hover
     const formatLabel = (d: GraphNode) => {
-      if (d.type === 'module') return d.label;
+      if (d.type === 'module' || d.type === 'folder') return d.label;
       return d.label.length > 22 ? d.label.slice(0, 20) + '…' : d.label;
     };
 
@@ -266,9 +328,9 @@ export const GraphView: React.FC<GraphViewProps> = ({
     node
       .append('text')
       .text(d => formatLabel(d))
-      .attr('font-size', d => (d.type === 'module' ? '12px' : '9px'))
-      .attr('font-weight', d => (d.type === 'module' ? '700' : '500'))
-      .attr('fill', d => (d.type === 'module' ? '#ffffff' : '#e4e4e7'))
+      .attr('font-size', d => (d.type === 'module' ? '12px' : d.type === 'folder' ? '10px' : '9px'))
+      .attr('font-weight', d => (d.type === 'module' ? '700' : d.type === 'folder' ? '600' : '500'))
+      .attr('fill', d => (d.type === 'module' ? '#ffffff' : d.type === 'folder' ? '#e9d5ff' : '#e4e4e7'))
       .attr('stroke', '#09090b')
       .attr('stroke-width', 3.5)
       .attr('paint-order', 'stroke fill')
@@ -276,7 +338,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .attr('dy', '.35em')
       .attr('pointer-events', 'none')
       .attr('font-family', 'ui-sans-serif, system-ui, sans-serif')
-      .attr('opacity', d => (d.type === 'module' ? 1 : 0.85));
+      .attr('opacity', d => (d.type === 'module' ? 1 : d.type === 'folder' ? 0.95 : 0.85));
 
     // Hover & click events
     node

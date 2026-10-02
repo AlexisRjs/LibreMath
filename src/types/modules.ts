@@ -23,6 +23,7 @@ export interface TopicMetadata {
   order?: number;
   tags?: string[];
   description?: string;
+  folder?: string;
   variables?: VariableDefinition[];
   formulas?: FormulaItem[];
 }
@@ -36,10 +37,18 @@ export interface Topic {
   order: number;
   tags: string[];
   description: string;
+  folder?: string;
   variables: VariableDefinition[];
   formulas: FormulaItem[];
   content: string; // Markdown body without frontmatter
   isUserNote?: boolean;
+}
+
+export interface UserFolder {
+  id: string;
+  name: string;
+  moduleId: string;
+  createdAt: number;
 }
 
 export interface ModuleManifest {
@@ -65,6 +74,7 @@ export interface TopicSummary {
   order: number;
   tags: string[];
   description: string;
+  folder?: string;
   formulaCount?: number;
   isUserNote?: boolean;
 }

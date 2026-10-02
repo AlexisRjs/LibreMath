@@ -1,0 +1,16 @@
+{
+  "id": "ingles-2",
+  "code": "ING2 - UTN FRRO",
+  "name": "Inglés II",
+  "description": "Cátedra UTN FRRO: Análisis y redacción de textos científicos y académicos. Voz pasiva avanzada, condicionales técnicos, estructura IMRyD y abstracts de investigación.",
+  "icon": "BookOpen",
+  "color": "cyan",
+  "units": [
+    { "id": "u1", "title": "Unidad 1: Voz Pasiva Avanzada y Estilo Científico Académico" },
+    { "id": "u2", "title": "Unidad 2: Condicionales Técnicos, Redacción de Abstracts e IMRyD" }
+  ],
+  "topicSlugs": [
+    "voz-pasiva-y-estilo-academico",
+    "condicionales-y-abstracts-cientificos"
+  ]
+}

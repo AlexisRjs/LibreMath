@@ -120,7 +120,8 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
           const yamlTags = (activeNote.tags || ['apuntes'])
             .map(t => `"${t}"`)
             .join(', ');
-          const rawMarkdown = `---\ntitle: "${newTitle.replace(/"/g, '\\"')}"\nunit: "${activeNote.unit}"\norder: ${activeNote.order}\ndescription: "${activeNote.description}"\ntags: [${yamlTags}]\nformulas: []\nvariables: []\n---\n\n${newBody}`;
+          const folderField = activeNote.folder?.trim() ? `folder: "${activeNote.folder.trim().replace(/"/g, '\\"')}"\n` : '';
+          const rawMarkdown = `---\ntitle: "${newTitle.replace(/"/g, '\\"')}"\nunit: "${activeNote.unit}"\norder: ${activeNote.order}\n${folderField}description: "${activeNote.description}"\ntags: [${yamlTags}]\nformulas: []\nvariables: []\n---\n\n${newBody}`;
 
           await saveTopicFile(activeNote.moduleId, activeNote.slug, rawMarkdown);
           setSaveStatus('saved');

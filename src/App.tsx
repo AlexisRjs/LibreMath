@@ -8,9 +8,10 @@ import {
   createTopicFile,
   deleteTopicFile,
 } from './services/desktopBridge';
-import { ModuleManifest, Topic, TopicSummary, FormulaItem, SearchIndexEntry } from './types/modules';
+import { ModuleManifest, Topic, TopicSummary, FormulaItem, SearchIndexEntry, UserFolder } from './types/modules';
 import { TodoItem } from './types/todo';
 import { getStoredTodos, saveStoredTodos } from './services/todoStorage';
+import { getStoredFolders, createStoredFolder, deleteStoredFolder } from './services/folderStorage';
 import { Sidebar, ActiveViewType } from './components/Sidebar';
 import { TopicViewer } from './components/TopicViewer';
 import { CommandPalette } from './components/CommandPalette';
@@ -61,6 +62,8 @@ export function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isNewNoteModalOpen, setIsNewNoteModalOpen] = useState(false);
   const [newNoteTargetModuleId, setNewNoteTargetModuleId] = useState<string>('algebra');
+  const [newNoteTargetFolder, setNewNoteTargetFolder] = useState<string | undefined>(undefined);
+  const [folders, setFolders] = useState<UserFolder[]>(() => getStoredFolders());
 
   // Tabs state matching Obsidian
   const [tabs, setTabs] = useState<TabItem[]>([
@@ -278,10 +281,35 @@ export function App() {
     handleSwitchView('formula-evaluator');
   };
 
-  const handleOpenNewNoteModal = (moduleId?: string) => {
+  const handleOpenNewNoteModal = (moduleId?: string, folder?: string) => {
     setNewNoteTargetModuleId(moduleId || selectedModuleId || 'algebra');
+    setNewNoteTargetFolder(folder);
     setIsNewNoteModalOpen(true);
   };
+
+  const handleCreateFolder = (name: string, moduleId: string) => {
+    const newFolder = createStoredFolder(name, moduleId);
+    setFolders(prev => {
+      if (prev.some(f => f.name.toLowerCase() === name.toLowerCase() && f.moduleId === moduleId)) {
+        return prev;
+      }
+      return [...prev, newFolder];
+    });
+  };
+
+  const handleDeleteFolder = (folderId: string) => {
+    const updated = deleteStoredFolder(folderId);
+    setFolders(updated);
+  };
+
+  // Compute available folders for new note modal based on current target module
+  const availableFoldersForNewNote = useMemo(() => {
+    const fromStored = folders.filter(f => f.moduleId === newNoteTargetModuleId).map(f => f.name);
+    const fromTopics = topicSummaries
+      .filter(t => t.moduleId === newNoteTargetModuleId && t.folder)
+      .map(t => t.folder as string);
+    return Array.from(new Set([...fromStored, ...fromTopics]));
+  }, [folders, topicSummaries, newNoteTargetModuleId]);
 
   const handleCreateNote = async (data: {
     moduleId: string;
@@ -290,6 +318,7 @@ export function App() {
     unit: string;
     tags: string[];
     description: string;
+    folder?: string;
   }) => {
     const res = await createTopicFile({
       moduleId: data.moduleId,
@@ -298,9 +327,13 @@ export function App() {
       unit: data.unit,
       description: data.description,
       tags: data.tags,
+      folder: data.folder,
     });
 
     if (res.success && res.topic) {
+      if (data.folder) {
+        handleCreateFolder(data.folder, data.moduleId);
+      }
       await loadIndexTree();
 
       setSelectedModuleId(data.moduleId);
@@ -437,24 +470,24 @@ export function App() {
               <div
                 key={tab.id}
                 onClick={() => handleSelectTab(tab)}
-                className={`group flex items-center gap-2 h-7 px-3 rounded-t-md text-xs cursor-pointer border-t-2 border-x transition-all max-w-[220px] ${
+                className={`group flex items-center gap-2 h-7 px-3 rounded-t-md text-xs cursor-pointer border-t-2 border-x transition-all duration-200 ease-out max-w-[220px] select-none ${
                   isActive
-                    ? 'bg-[#09090b] text-white border-t-[#7c3aed] border-x-zinc-800 font-semibold shadow-xs'
-                    : 'bg-transparent text-zinc-400 border-transparent hover:bg-zinc-900/60 hover:text-zinc-200'
+                    ? 'bg-[#09090b] text-white border-t-[#7c3aed] border-x-zinc-800 font-semibold shadow-[0_-2px_12px_rgba(124,58,237,0.35)]'
+                    : 'bg-transparent text-zinc-400 border-transparent hover:bg-zinc-900/60 hover:text-zinc-200 hover:-translate-y-0.5'
                 }`}
               >
                 {tab.view === 'graph' ? (
-                  <Network className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
+                  <Network className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'my-notes' ? (
-                  <PenTool className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
+                  <PenTool className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'matrix-calculator' ? (
-                  <Grid className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
+                  <Grid className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'formula-evaluator' ? (
-                  <Sigma className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
+                  <Sigma className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'favorites' ? (
-                  <Bookmark className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <Bookmark className="w-3.5 h-3.5 text-amber-400 shrink-0 transition-transform duration-200 group-hover:scale-105" />
                 ) : (
-                  <FileText className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
+                  <FileText className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 )}
 
                 <span className="truncate">{tab.title}</span>
@@ -462,7 +495,7 @@ export function App() {
                 {tabs.length > 1 && (
                   <button
                     onClick={e => handleCloseTab(e, tab.id)}
-                    className="p-0.5 rounded hover:bg-zinc-800 text-zinc-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all ml-1"
+                    className="p-0.5 rounded hover:bg-zinc-800 text-zinc-500 hover:text-white hover:scale-110 active:scale-90 opacity-0 group-hover:opacity-100 transition-all duration-150 ml-1"
                     title="Cerrar pestaña"
                   >
                     <X className="w-3 h-3" />
@@ -475,7 +508,7 @@ export function App() {
           {/* New Tab Button */}
           <button
             onClick={handleNewTab}
-            className="p-1 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800/70 transition-colors shrink-0"
+            className="p-1 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800/70 hover:scale-110 active:scale-90 transition-all duration-150 shrink-0"
             title="Nueva pestaña"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -521,6 +554,9 @@ export function App() {
               onToggleTodo={handleToggleTodo}
               onAddTodo={handleAddTodo}
               onDeleteTodo={handleDeleteTodo}
+              folders={folders}
+              onCreateFolder={handleCreateFolder}
+              onDeleteFolder={handleDeleteFolder}
             />
           </div>
         )}
@@ -550,8 +586,8 @@ export function App() {
                   setIsSearchOpen(true);
                   setIsMobileSidebarOpen(false);
                 }}
-                onNewNote={moduleId => {
-                  handleOpenNewNoteModal(moduleId);
+                onNewNote={(moduleId, folder) => {
+                  handleOpenNewNoteModal(moduleId, folder);
                   setIsMobileSidebarOpen(false);
                 }}
                 onDeleteNote={t => {
@@ -563,6 +599,9 @@ export function App() {
                 onToggleTodo={handleToggleTodo}
                 onAddTodo={handleAddTodo}
                 onDeleteTodo={handleDeleteTodo}
+                folders={folders}
+                onCreateFolder={handleCreateFolder}
+                onDeleteFolder={handleDeleteFolder}
               />
             </div>
           </div>
@@ -590,97 +629,103 @@ export function App() {
             </button>
           </div>
 
-          {/* Dynamic Content Views */}
+          {/* Dynamic Content Views with silky smooth transition */}
           <div className="flex-1 overflow-hidden relative bg-[#09090b]">
-            {activeView === 'topic' && (
-              isLoadingTopic && !selectedTopic ? (
-                <div className="flex flex-col items-center justify-center h-full space-y-3 text-zinc-500">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#7c3aed]" />
-                  <p className="text-xs font-mono text-zinc-400">Cargando nota...</p>
-                </div>
-              ) : selectedTopic ? (
-                <TopicViewer
-                  topic={selectedTopic}
-                  allTopics={topicSummaries}
-                  onSelectTopic={handleSelectTopic}
-                  onOpenCalculator={handleOpenCalculator}
-                  favorites={favorites}
-                  onToggleFavorite={toggleFavorite}
-                  onDeleteNote={handleDeleteNote}
-                  onTopicSaved={() => {
-                    loadIndexTree();
-                    fetchTopicContent(selectedModuleId, selectedSlug).then(fresh => {
-                      if (fresh) {
-                        setSelectedTopic(fresh);
-                      }
-                    });
-                  }}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-zinc-500 text-xs">
-                  Selecciona un tema para comenzar
-                </div>
-              )
-            )}
+            <div
+              key={activeView === 'topic' ? `view-topic-${selectedModuleId}-${selectedSlug}` : `view-${activeView}`}
+              className="h-full w-full animate-view-fade"
+            >
+              {activeView === 'topic' && (
+                isLoadingTopic && !selectedTopic ? (
+                  <div className="flex flex-col items-center justify-center h-full space-y-3 text-zinc-500">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#7c3aed]" />
+                    <p className="text-xs font-mono text-zinc-400">Cargando nota...</p>
+                  </div>
+                ) : selectedTopic ? (
+                  <TopicViewer
+                    topic={selectedTopic}
+                    allTopics={topicSummaries}
+                    onSelectTopic={handleSelectTopic}
+                    onOpenCalculator={handleOpenCalculator}
+                    favorites={favorites}
+                    onToggleFavorite={toggleFavorite}
+                    onDeleteNote={handleDeleteNote}
+                    onTopicSaved={() => {
+                      loadIndexTree();
+                      fetchTopicContent(selectedModuleId, selectedSlug).then(fresh => {
+                        if (fresh) {
+                          setSelectedTopic(fresh);
+                        }
+                      });
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-zinc-500 text-xs">
+                    Selecciona un tema para comenzar
+                  </div>
+                )
+              )}
 
-            {/* Direct Writing Canvas: Mis Notas */}
-            {activeView === 'my-notes' && (
-              <div className="h-full overflow-hidden bg-[#09090b]">
-                <MyNotesCanvas
+              {/* Direct Writing Canvas: Mis Notas */}
+              {activeView === 'my-notes' && (
+                <div className="h-full overflow-hidden bg-[#09090b]">
+                  <MyNotesCanvas
+                    manifests={manifests}
+                    allTopics={allTopics}
+                    initialTopic={selectedTopic?.isUserNote ? selectedTopic : null}
+                    onTopicCreated={loadIndexTree}
+                    onTopicSelect={handleSelectTopic}
+                    onDeleteNote={handleDeleteNote}
+                  />
+                </div>
+              )}
+
+              {/* Modern Knowledge Graph View (D3.js) */}
+              {activeView === 'graph' && (
+                <GraphView
                   manifests={manifests}
-                  allTopics={allTopics}
-                  initialTopic={selectedTopic?.isUserNote ? selectedTopic : null}
-                  onTopicCreated={loadIndexTree}
-                  onTopicSelect={handleSelectTopic}
-                  onDeleteNote={handleDeleteNote}
+                  topics={topicSummaries}
+                  folders={folders}
+                  onSelectTopic={handleSelectTopic}
                 />
-              </div>
-            )}
+              )}
 
-            {/* Modern Knowledge Graph View (D3.js) */}
-            {activeView === 'graph' && (
-              <GraphView
-                manifests={manifests}
-                topics={topicSummaries}
-                onSelectTopic={handleSelectTopic}
-              />
-            )}
+              {activeView === 'matrix-calculator' && (
+                <div className="h-full overflow-y-auto bg-[#09090b]">
+                  <MatrixCalculator />
+                </div>
+              )}
 
-            {activeView === 'matrix-calculator' && (
-              <div className="h-full overflow-y-auto bg-[#09090b]">
-                <MatrixCalculator />
-              </div>
-            )}
+              {activeView === 'formula-evaluator' && (
+                <div className="h-full overflow-hidden bg-[#09090b]">
+                  <FormulaEvaluator
+                    topics={allTopics.length > 0 ? allTopics : (selectedTopic ? [selectedTopic] : [])}
+                    selectedFormulaId={selectedFormulaIdForBank}
+                    onSelectTopic={t => {
+                      handleSelectTopic(t);
+                      handleSwitchView('topic');
+                    }}
+                    favorites={favorites}
+                    onToggleFavorite={toggleFavorite}
+                  />
+                </div>
+              )}
 
-            {activeView === 'formula-evaluator' && (
-              <div className="h-full overflow-hidden bg-[#09090b]">
-                <FormulaEvaluator
-                  topics={allTopics.length > 0 ? allTopics : (selectedTopic ? [selectedTopic] : [])}
-                  selectedFormulaId={selectedFormulaIdForBank}
-                  onSelectTopic={t => {
-                    handleSelectTopic(t);
-                    handleSwitchView('topic');
-                  }}
-                  favorites={favorites}
-                  onToggleFavorite={toggleFavorite}
-                />
-              </div>
-            )}
-
-            {activeView === 'favorites' && (
-              <div className="h-full overflow-y-auto bg-[#09090b]">
-                <FavoritesView
-                  topics={allTopics.length > 0 ? allTopics : (selectedTopic ? [selectedTopic] : [])}
-                  favoriteIds={favorites}
-                  onToggleFavorite={toggleFavorite}
-                  onOpenCalculator={handleOpenCalculator}
-                  onSelectTopic={t => {
-                    handleSelectTopic(t);
-                    handleSwitchView('topic');
-                  }}
-                />
-              </div>
-            )}
+              {activeView === 'favorites' && (
+                <div className="h-full overflow-y-auto bg-[#09090b]">
+                  <FavoritesView
+                    topics={allTopics.length > 0 ? allTopics : (selectedTopic ? [selectedTopic] : [])}
+                    favoriteIds={favorites}
+                    onToggleFavorite={toggleFavorite}
+                    onOpenCalculator={handleOpenCalculator}
+                    onSelectTopic={t => {
+                      handleSelectTopic(t);
+                      handleSwitchView('topic');
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </main>
       </div>
@@ -721,6 +766,8 @@ export function App() {
         onClose={() => setIsNewNoteModalOpen(false)}
         manifests={manifests}
         defaultModuleId={newNoteTargetModuleId}
+        defaultFolder={newNoteTargetFolder}
+        availableFolders={availableFoldersForNewNote}
         onCreateNote={handleCreateNote}
       />
     </div>

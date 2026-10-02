@@ -1,0 +1,20 @@
+{
+  "id": "analisis-numerico",
+  "code": "AN - UTN FRRO",
+  "name": "Análisis Numérico",
+  "description": "Cátedra Homogénea UTN FRRO: Teoría de errores, raíces de ecuaciones no lineales, sistemas de ecuaciones lineales y no lineales (Gauss, LU, Jacobi, Gauss-Seidel), interpolación polinómica, mínimos cuadrados, integración numérica y resolución numérica de EDOs (Euler, Runge-Kutta).",
+  "icon": "Calculator",
+  "color": "rose",
+  "units": [
+    { "id": "u1", "title": "Unidad 1: Teoría de Errores y Raíces de Ecuaciones No Lineales" },
+    { "id": "u2", "title": "Unidad 2: Sistemas de Ecuaciones Lineales: Métodos Directos e Iterativos" },
+    { "id": "u3", "title": "Unidad 3: Interpolación Polinómica y Ajuste por Mínimos Cuadrados" },
+    { "id": "u4", "title": "Unidad 4: Diferenciación, Integración Numérica y Ecuaciones Diferenciales (EDO)" }
+  ],
+  "topicSlugs": [
+    "teoria-de-errores-y-raices-no-lineales",
+    "sistemas-lineales-iterativos-y-directos",
+    "interpolacion-y-minimos-cuadrados",
+    "integracion-numerica-y-edos"
+  ]
+}

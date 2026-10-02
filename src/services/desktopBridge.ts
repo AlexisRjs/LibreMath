@@ -28,6 +28,7 @@ export async function fetchTopicsIndex(): Promise<TopicSummary[]> {
     description: t.description,
     formulaCount: t.formulas.length,
     isUserNote: t.isUserNote,
+    folder: t.folder,
   }));
 }
 
@@ -88,6 +89,7 @@ export interface CreateNoteParams {
   title: string;
   unit?: string;
   description?: string;
+  folder?: string;
   tags?: string[];
   initialContent?: string;
 }
@@ -101,6 +103,7 @@ export async function createTopicFile(
     title,
     unit = 'Apuntes y Anotaciones',
     description = 'Anotaciones personales',
+    folder,
     tags = ['apuntes'],
     initialContent,
   } = params;
@@ -108,7 +111,8 @@ export async function createTopicFile(
   const defaultBody = initialContent ?? `# ${title}\n\nEscribe tus notas, fórmulas matemáticas en LaTeX ($...$ o $$...$$) y callouts aquí.\n\n> [!NOTE]\n> Apuntes personales para ${title}.\n`;
 
   const yamlTags = tags.map(t => `"${t.trim()}"`).filter(Boolean).join(', ');
-  const rawMarkdown = `---\ntitle: "${title.replace(/"/g, '\\"')}"\nunit: "${unit.replace(/"/g, '\\"')}"\norder: 100\ndescription: "${description.replace(/"/g, '\\"')}"\ntags: [${yamlTags}]\nformulas: []\nvariables: []\n---\n\n${defaultBody}`;
+  const folderField = folder?.trim() ? `folder: "${folder.trim().replace(/"/g, '\\"')}"\n` : '';
+  const rawMarkdown = `---\ntitle: "${title.replace(/"/g, '\\"')}"\nunit: "${unit.replace(/"/g, '\\"')}"\norder: 100\n${folderField}description: "${description.replace(/"/g, '\\"')}"\ntags: [${yamlTags}]\nformulas: []\nvariables: []\n---\n\n${defaultBody}`;
 
   try {
     // 1. Register in memory and localStorage

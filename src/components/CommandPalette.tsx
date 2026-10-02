@@ -109,11 +109,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-100"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl rounded-2xl bg-[#0e0e12] border border-zinc-800 shadow-2xl overflow-hidden flex flex-col max-h-[75vh]"
+        className="w-full max-w-2xl rounded-2xl bg-[#0e0e12] border border-zinc-800 shadow-2xl shadow-purple-950/25 overflow-hidden flex flex-col max-h-[75vh] animate-modal-pop"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}

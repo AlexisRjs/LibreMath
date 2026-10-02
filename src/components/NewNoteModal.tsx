@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { ModuleManifest } from '../types/modules';
-import { X, FilePlus, Sparkles, Folder, Tag, Layers, AlignLeft } from 'lucide-react';
+import { X, FilePlus, Sparkles, Folder, Tag, Layers, AlignLeft, FolderPlus } from 'lucide-react';
 
 interface NewNoteModalProps {
   isOpen: boolean;
   onClose: () => void;
   manifests: ModuleManifest[];
   defaultModuleId?: string;
+  defaultFolder?: string;
+  availableFolders?: string[];
   onCreateNote: (noteData: {
     moduleId: string;
     title: string;
@@ -14,6 +16,7 @@ interface NewNoteModalProps {
     unit: string;
     tags: string[];
     description: string;
+    folder?: string;
   }) => Promise<void> | void;
 }
 
@@ -22,6 +25,8 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
   onClose,
   manifests,
   defaultModuleId,
+  defaultFolder,
+  availableFolders = [],
   onCreateNote,
 }) => {
   const [selectedModule, setSelectedModule] = useState<string>(
@@ -30,6 +35,9 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [unit, setUnit] = useState('Apuntes y Anotaciones');
+  const [folder, setFolder] = useState<string>(defaultFolder || '');
+  const [isCustomFolder, setIsCustomFolder] = useState(false);
+  const [customFolderName, setCustomFolderName] = useState('');
   const [tagsInput, setTagsInput] = useState('apuntes, notas');
   const [description, setDescription] = useState('Anotaciones y apuntes de estudio');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,18 +50,29 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
     }
   }, [defaultModuleId]);
 
+  // Sync defaultFolder
+  useEffect(() => {
+    if (defaultFolder) {
+      setFolder(defaultFolder);
+      setIsCustomFolder(false);
+    }
+  }, [defaultFolder]);
+
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setTitle('');
       setSlug('');
       setUnit('Apuntes y Anotaciones');
+      setFolder(defaultFolder || '');
+      setIsCustomFolder(false);
+      setCustomFolderName('');
       setTagsInput('apuntes, notas');
       setDescription('Anotaciones y apuntes de estudio');
       setError(null);
       setIsSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, defaultFolder]);
 
   if (!isOpen) return null;
 
@@ -90,6 +109,8 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
       .map(t => t.trim())
       .filter(Boolean);
 
+    const finalFolder = isCustomFolder ? customFolderName.trim() : folder.trim();
+
     setIsSubmitting(true);
     setError(null);
 
@@ -99,6 +120,7 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
         title: title.trim(),
         slug: cleanSlug,
         unit: unit.trim() || 'Apuntes y Anotaciones',
+        folder: finalFolder || undefined,
         tags: tagsList.length > 0 ? tagsList : ['apuntes'],
         description: description.trim() || 'Anotaciones personales',
       });
@@ -113,9 +135,9 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
   const activeManifest = manifests.find(m => m.id === selectedModule);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
       <div
-        className="w-full max-w-md bg-[#0e0e12] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-white text-xs"
+        className="w-full max-w-md bg-[#0e0e12] border border-zinc-800 rounded-2xl shadow-2xl shadow-purple-950/25 overflow-hidden flex flex-col text-white text-xs animate-modal-pop"
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -171,6 +193,47 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
               <span className="inline-block mt-1 text-[10px] text-zinc-400 font-mono">
                 Carpeta física: <span className="text-[#a78bfa]">/modules/{activeManifest.id}/</span>
               </span>
+            )}
+          </div>
+
+          {/* Destination Folder Selector */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+                <Folder className="w-3.5 h-3.5 text-[#a78bfa]" />
+                <span>Carpeta de Destino (Opcional)</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsCustomFolder(prev => !prev)}
+                className="text-[10px] text-[#a78bfa] hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <FolderPlus className="w-3 h-3" />
+                <span>{isCustomFolder ? 'Elegir existente' : '+ Nueva carpeta'}</span>
+              </button>
+            </div>
+
+            {isCustomFolder ? (
+              <input
+                type="text"
+                value={customFolderName}
+                onChange={e => setCustomFolderName(e.target.value)}
+                placeholder="Nombre de la nueva carpeta (ej: Trabajos Prácticos, Resúmenes)"
+                className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-hidden focus:border-[#7c3aed] transition-colors text-xs"
+              />
+            ) : (
+              <select
+                value={folder}
+                onChange={e => setFolder(e.target.value)}
+                className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:outline-hidden focus:border-[#7c3aed] transition-colors text-xs cursor-pointer"
+              >
+                <option value="">(Raíz de la materia / Sin carpeta)</option>
+                {availableFolders.map(f => (
+                  <option key={f} value={f} className="bg-[#0e0e12]">
+                    📁 {f}
+                  </option>
+                ))}
+              </select>
             )}
           </div>
 

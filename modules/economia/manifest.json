@@ -1,0 +1,18 @@
+{
+  "id": "economia",
+  "code": "ECO - UTN FRRO",
+  "name": "Economía",
+  "description": "Cátedra UTN FRRO: Microeconomía (demanda, oferta, costos y estructuras de mercado), macroeconomía e indicadores argentinos, y evaluación económica de proyectos de ingeniería (VAN, TIR y Payback).",
+  "icon": "TrendingUp",
+  "color": "violet",
+  "units": [
+    { "id": "u1", "title": "Unidad 1: Microeconomía: Demanda, Oferta, Elasticidad y Costos de Producción" },
+    { "id": "u2", "title": "Unidad 2: Macroeconomía, PBI, Inflación y Políticas Económicas" },
+    { "id": "u3", "title": "Unidad 3: Evaluación Económica y Financiera de Proyectos de Inversión" }
+  ],
+  "topicSlugs": [
+    "microeconomia-mercado-y-costos",
+    "macroeconomia-indicadores-y-politica",
+    "evaluacion-de-proyectos-van-tir"
+  ]
+}

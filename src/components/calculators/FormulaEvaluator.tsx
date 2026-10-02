@@ -106,7 +106,11 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
     { id: 'fisica-1', label: 'Física I', count: allEnrichedFormulas.filter(f => f.moduleId === 'fisica-1').length },
     { id: 'am2', label: 'Análisis Mat. II', count: allEnrichedFormulas.filter(f => f.moduleId === 'am2').length },
     { id: 'fisica-2', label: 'Física II', count: allEnrichedFormulas.filter(f => f.moduleId === 'fisica-2').length },
-  ];
+    { id: 'logica-y-estructuras-discretas', label: 'Lógica Discreta', count: allEnrichedFormulas.filter(f => f.moduleId === 'logica-y-estructuras-discretas').length },
+    { id: 'probabilidad-y-estadistica', label: 'Probabilidad y Est.', count: allEnrichedFormulas.filter(f => f.moduleId === 'probabilidad-y-estadistica').length },
+    { id: 'economia', label: 'Economía', count: allEnrichedFormulas.filter(f => f.moduleId === 'economia').length },
+    { id: 'analisis-numerico', label: 'Análisis Numérico', count: allEnrichedFormulas.filter(f => f.moduleId === 'analisis-numerico').length },
+  ].filter(tab => tab.id === 'all' || tab.count > 0);
 
   return (
     <div className="flex flex-col h-full bg-[#09090b] text-white select-none">

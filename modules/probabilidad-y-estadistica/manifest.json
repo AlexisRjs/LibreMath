@@ -1,0 +1,20 @@
+{
+  "id": "probabilidad-y-estadistica",
+  "code": "PYE - UTN FRRO",
+  "name": "Probabilidad y Estadística",
+  "description": "Cátedra Homogénea UTN FRRO: Teoría de probabilidades, variables aleatorias discretas y continuas, distribuciones notables (Binomial, Poisson, Normal), estadística inferencial, intervalos de confianza y pruebas de hipótesis.",
+  "icon": "BarChart2",
+  "color": "amber",
+  "units": [
+    { "id": "u1", "title": "Unidad 1: Espacios de Probabilidad, Probabilidad Condicional y Teorema de Bayes" },
+    { "id": "u2", "title": "Unidad 2: Variables Aleatorias Discretas y Distribuciones Especiales" },
+    { "id": "u3", "title": "Unidad 3: Variables Aleatorias Continuas y Teorema Central del Límite" },
+    { "id": "u4", "title": "Unidad 4: Estadística Descriptiva, Inferencia, Intervalos y Regresión" }
+  ],
+  "topicSlugs": [
+    "probabilidad-y-teorema-de-bayes",
+    "variables-aleatorias-discretas",
+    "variables-aleatorias-continuas",
+    "estadistica-inferencial-e-intervalos"
+  ]
+}

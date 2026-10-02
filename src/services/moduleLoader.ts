@@ -63,11 +63,14 @@ function extractFallbackMetadata(yamlString: string, topicSlug: string): TopicMe
     .replace(/-/g, ' ')
     .replace(/\b\w/g, c => c.toUpperCase());
 
+  const folderMatch = yamlString.match(/^folder:\s*["']?([^"'\r\n]+)["']?/m);
+
   return {
     title: titleMatch ? titleMatch[1].trim() : fallbackTitle,
     unit: unitMatch ? unitMatch[1].trim() : 'General',
     order: orderMatch ? parseInt(orderMatch[1], 10) : 999,
     description: descMatch ? descMatch[1].trim() : '',
+    folder: folderMatch ? folderMatch[1].trim() : undefined,
     tags: [],
     variables: [],
     formulas: [],
@@ -169,6 +172,7 @@ export function loadAllModules(): ParsedModuleData {
           moduleName,
         })),
         content,
+        folder: metadata.folder,
       };
 
       topics.push(topic);
@@ -236,6 +240,7 @@ export function loadAllModules(): ParsedModuleData {
       })),
       content,
       isUserNote: true,
+      folder: metadata.folder,
     };
 
     if (existingIndex !== -1) {
@@ -357,6 +362,7 @@ export function registerDynamicTopic(
     })),
     content,
     isUserNote,
+    folder: metadata.folder,
   };
 
   // Update or insert topic in cached topics

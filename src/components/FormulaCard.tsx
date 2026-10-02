@@ -27,12 +27,12 @@ export const FormulaCard: React.FC<FormulaCardProps> = ({
   };
 
   return (
-    <div className="group rounded-xl bg-[#0e0e12] border border-zinc-800 hover:border-[#7c3aed]/70 p-4 transition-all text-left shadow-xs hover:shadow-md">
+    <div className="group rounded-xl bg-[#0e0e12] border border-zinc-800 p-4 formula-card-interactive text-left shadow-xs">
       {/* Top Header: Name and Action buttons */}
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="font-bold text-white text-sm tracking-tight truncate">
+            <h4 className="font-bold text-white text-sm tracking-tight truncate group-hover:text-purple-200 transition-colors">
               {formula.name}
             </h4>
             {formula.moduleId && (
@@ -53,9 +53,9 @@ export const FormulaCard: React.FC<FormulaCardProps> = ({
           <button
             onClick={() => setShowRawLatex(prev => !prev)}
             title={showRawLatex ? 'Ocultar código LaTeX plano' : 'Ver código LaTeX plano'}
-            className={`p-1.5 rounded-md transition-colors text-xs flex items-center gap-1 ${
+            className={`p-1.5 rounded-md transition-all duration-150 active:scale-95 text-xs flex items-center gap-1 ${
               showRawLatex
-                ? 'bg-[#7c3aed] text-white'
+                ? 'bg-[#7c3aed] text-white shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
@@ -67,13 +67,13 @@ export const FormulaCard: React.FC<FormulaCardProps> = ({
             <button
               onClick={() => onToggleFavorite(formula.id)}
               title={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
-              className={`p-1.5 rounded-md transition-colors ${
+              className={`p-1.5 rounded-md transition-all duration-150 hover:scale-105 active:scale-90 ${
                 isFavorite
-                  ? 'bg-amber-500/20 text-amber-400'
+                  ? 'bg-amber-500/20 text-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.2)]'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
               }`}
             >
-              <Bookmark className={`w-3.5 h-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+              <Bookmark className={`w-3.5 h-3.5 transition-transform duration-200 ${isFavorite ? 'fill-current scale-110' : ''}`} />
             </button>
           )}
 
@@ -81,7 +81,7 @@ export const FormulaCard: React.FC<FormulaCardProps> = ({
             <button
               onClick={() => onOpenCalculator(formula)}
               title="Abrir en Banco de Fórmulas"
-              className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 hover:scale-105 active:scale-90 transition-all duration-150"
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </button>
@@ -90,10 +90,10 @@ export const FormulaCard: React.FC<FormulaCardProps> = ({
           <button
             onClick={handleCopy}
             title="Copiar código LaTeX"
-            className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 hover:scale-105 active:scale-90 transition-all duration-150"
           >
             {copied ? (
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <Check className="w-3.5 h-3.5 text-emerald-400 animate-in zoom-in-75 duration-150" />
             ) : (
               <Copy className="w-3.5 h-3.5" />
             )}
