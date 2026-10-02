@@ -6,11 +6,13 @@
   "icon": "Sigma",
   "color": "cyan",
   "units": [
+    { "id": "u0", "title": "Tema 0: Fundamentos, Trigonometría y Cónicas (Formulario UPL)" },
     { "id": "u1", "title": "Tema 1: Funciones, Límites y Continuidad" },
     { "id": "u2", "title": "Tema 2: Cálculo Diferencial, Teoremas del Valor Medio y Estudio de Funciones" },
     { "id": "u3", "title": "Tema 3: Cálculo Integral, Teoremas Fundamentales y Aplicaciones" }
   ],
   "topicSlugs": [
+    "fundamentos-conicas-trigonometria",
     "funciones",
     "derivadas",
     "integrales"

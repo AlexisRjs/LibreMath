@@ -26,6 +26,21 @@ variables:
     unit: 'm'
     description: 'Medida rectilínea de la trayectoria curva entre dos abscisas'
 formulas:
+  - id: 'tabla-integrales-inmediatas-basicas-upl'
+    name: 'Tabla de Integrales: Inmediatas, Potencias y Exponenciales'
+    latex: '\int dx = x + C, \quad \int x^n dx = \frac{x^{n+1}}{n+1} + C, \quad \int \frac{1}{x} dx = \ln|x| + C, \quad \int e^x dx = e^x + C, \quad \int a^x dx = \frac{a^x}{\ln a} + C'
+    description: 'Antiderivadas inmediatas de la constante, potencias, racional y funciones exponenciales según el Formulario UPL.'
+    tags: ["integrales", "tabla", "inmediatas", "potencias", "exponencial", "upl"]
+  - id: 'tabla-integrales-trigonometricas-upl'
+    name: 'Tabla de Integrales: Trigonométricas Directas'
+    latex: '\int \sin x dx = -\cos x + C, \quad \int \cos x dx = \sin x + C, \quad \int \sec^2 x dx = \tan x + C, \quad \int \csc^2 x dx = -\cot x + C, \quad \int \sec x \tan x dx = \sec x + C, \quad \int \csc x \cot x dx = -\csc x + C'
+    description: 'Integrales inmediatas de funciones trigonométricas directas del Formulario UPL.'
+    tags: ["integrales", "tabla", "trigonometria", "upl"]
+  - id: 'tabla-integrales-inversas-hiperbolicas-upl'
+    name: 'Tabla de Integrales: Hiperbólicas, Inversas e Inversas Hiperbólicas'
+    latex: '\int \sinh x dx = \cosh x + C, \quad \int \cosh x dx = \sinh x + C, \quad \int \frac{dx}{1+x^2} = \arctan x + C, \quad \int \frac{dx}{\sqrt{1-x^2}} = \arcsin x + C, \quad \int \frac{dx}{1-x^2} = \text{Argtanh } x + C, \quad \int \frac{dx}{\sqrt{1+x^2}} = \text{Argsinh } x + C, \quad \int \frac{dx}{\sqrt{x^2-1}} = \text{Argcosh } x + C'
+    description: 'Integrales con formas cuadráticas que dan lugar a funciones inversas trigonométricas e hiperbólicas del Formulario UPL.'
+    tags: ["integrales", "tabla", "inversas", "hiperbolicas", "argtanh", "upl"]
   - id: 'regla-leibniz-derivada-integral'
     name: 'Regla de Leibniz para Derivación de Integrales Variables'
     latex: '\frac{d}{dx} \left[ \int_{u(x)}^{v(x)} f(t) \, dt \right] = f(v(x)) \cdot v''(x) - f(u(x)) \cdot u''(x)'
@@ -41,30 +56,47 @@ formulas:
     latex: 'V_x = \pi \int_{a}^{b} [f(x)]^2 \, dx, \qquad V_y = 2\pi \int_{a}^{b} x \cdot f(x) \, dx'
     description: 'Método de discos transversales y método de cascarones o capas cilíndricas.'
     tags: ["volumen", "revolucion", "discos", "cilindricas"]
-  - id: 'longitud-arco-curva-plana'
-    name: 'Longitud de Arco de una Curva Rectificable'
-    latex: 'L = \int_{a}^{b} \sqrt{1 + \left[f''(x)\right]^2} \, dx = \int_{t_1}^{t_2} \sqrt{[x''(t)]^2 + [y''(t)]^2} \, dt'
-    description: 'Elemento diferencial de arco ds integrado a lo largo del intervalo analítico.'
-    tags: ["longitud-arco", "curva", "rectificable"]
   - id: 'sustitucion-weierstrass-universal'
     name: 'Sustitución Universal de Weierstrass'
     latex: 't = \tan\left(\frac{x}{2}\right) \implies \sin(x) = \frac{2t}{1+t^2}, \quad \cos(x) = \frac{1-t^2}{1+t^2}, \quad dx = \frac{2}{1+t^2} dt'
     description: 'Racionaliza cualquier función trigonométrica racional en una función puramente algebraica en t.'
     tags: ["weierstrass", "trigonometria", "sustitucion"]
-  - id: 'criterio-raabe-series'
-    name: 'Criterio de Raabe para Series Numéricas (Caso D''Alembert L = 1)'
-    latex: 'L = \lim_{n \to \infty} n \left( 1 - \frac{a_{n+1}}{a_n} \right) \implies \begin{cases} L > 1 & \text{Converge} \\ L < 1 & \text{Diverge} \\ L = 1 & \text{Duda} \end{cases}'
-    description: 'Discrimina con alta precisión la convergencia cuando el cociente de D''Alembert arroja 1.'
-    tags: ["raabe", "series", "convergencia"]
 ---
 
-# Cálculo Integral, Aplicaciones y Convergencia
+# Cálculo Integral y Tablas de Antiderivadas
 
-El cálculo integral abarca desde las técnicas analíticas para resolver antiderivadas hasta la resolución geométrica de áreas, volúmenes y el análisis riguroso de convergencia en integrales impropias y series.
+El cálculo integral abarca desde las antiderivadas inmediatas y técnicas analíticas avanzadas hasta la resolución de áreas, volúmenes de revolución y series.
 
 ---
 
-## 1. Técnicas Maestras de Integración
+## 1. Tabla Oficial de Integrales Inmediatas (Formulario UPL)
+
+A continuación se detalla la tabla completa del **Formulario Oficial UPL**:
+
+| Integral Indefinida | Antiderivada / Primitiva | Condición / Observación |
+|---|---|---|
+| $\int dx = \int 1 \, dx$ | $x + C$ | Constante unitaria |
+| $\int x^n \, dx$ | $\frac{x^{n+1}}{n+1} + C$ | Potencia real ($n \neq -1$) |
+| $\int \frac{1}{x} \, dx$ | $\ln\|x\| + C$ | Caso potencia $n = -1$ |
+| $\int e^x \, dx$ | $e^x + C$ | Exponencial natural |
+| $\int \sin x \, dx$ | $-\cos x + C$ | Seno |
+| $\int \cos x \, dx$ | $\sin x + C$ | Coseno |
+| $\int a^x \, dx$ | $\frac{a^x}{\ln a} + C$ | Exponencial base $a > 0, \; a \neq 1$ |
+| $\int \sinh x \, dx$ | $\cosh x + C$ | Seno hiperbólico |
+| $\int \cosh x \, dx$ | $\sinh x + C$ | Coseno hiperbólico |
+| $\int \sec^2 x \, dx$ | $\tan x + C$ | Cuadrado de secante |
+| $\int \csc^2 x \, dx$ | $-\cot x + C$ | Cuadrado de cosecante |
+| $\int \sec x \cdot \tan x \, dx$ | $\sec x + C$ | Producto secante por tangente |
+| $\int \csc x \cdot \cot x \, dx$ | $-\csc x + C$ | Producto cosecante por cotangente |
+| $\int \frac{1}{1 + x^2} \, dx$ | $\arctan x + C$ | Racional cuadrática reducible |
+| $\int \frac{1}{\sqrt{1 - x^2}} \, dx$ | $\arcsin x + C$ | Radical cuadrático inverso ($-1 < x < 1$) |
+| $\int \frac{1}{1 - x^2} \, dx$ | $\text{Argtanh } x + C$ | Argumento tangente hiperbólica ($\|x\| < 1$) |
+| $\int \frac{1}{\sqrt{1 + x^2}} \, dx$ | $\text{Argsinh } x + C$ | Argumento seno hiperbólico |
+| $\int \frac{1}{\sqrt{x^2 - 1}} \, dx$ | $\text{Argcosh } x + C$ | Argumento coseno hiperbólico ($x > 1$) |
+
+---
+
+## 2. Técnicas Analíticas de Integración
 
 1. **Integración por Partes:** $\int u \, dv = u \cdot v - \int v \, du$.
 2. **Fracciones Simples (Factores lineales y cuadráticos irreducibles):**

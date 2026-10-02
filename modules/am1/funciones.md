@@ -28,16 +28,16 @@ formulas:
     latex: '\lim_{x \to x_0} f(x) = L \iff \forall \varepsilon > 0, \, \exists \delta > 0 : 0 < |x - x_0| < \delta \implies |f(x) - L| < \varepsilon'
     description: 'Formalización rigurosa de Cauchy de la aproximación continua.'
     tags: ["limite", "definicion", "epsilon-delta"]
-  - id: 'limite-notable-trigonometrico'
-    name: 'Límite Notable Trigonométrico Fundamental'
-    latex: '\lim_{x \to 0} \frac{\sin(x)}{x} = 1 \implies \lim_{x \to 0} \frac{1 - \cos(x)}{x^2} = \frac{1}{2}'
-    description: 'Base de derivación de funciones trigonométricas e infinitésimos equivalentes.'
-    tags: ["limite-notable", "trigonometria", "infinitesimo"]
-  - id: 'limite-notable-numero-e'
-    name: 'Límite Notable del Número e (Indeterminación 1^\infty)'
-    latex: '\lim_{x \to \infty} \left(1 + \frac{1}{x}\right)^x = e, \qquad \lim_{f(x)\to 0} [1 + f(x)]^{\frac{1}{f(x)}} = e'
-    description: 'Resolución de indeterminaciones exponenciales del tipo uno elevado a infinito.'
-    tags: ["numero-e", "indeterminacion", "exponencial"]
+  - id: 'limites-notables-trigonometricos-upl'
+    name: 'Límites Trigonométricos Notables (Formulario UPL)'
+    latex: '\lim_{x \to 0} \frac{\sin x}{x} = 1, \qquad \lim_{x \to 0} \frac{x}{\sin x} = 1, \qquad \lim_{x \to 0} \frac{\tan x}{x} = 1'
+    description: 'Trío canónico de límites notables trigonométricos de infinitésimos equivalentes.'
+    tags: ["limites", "trigonometria", "notables", "upl"]
+  - id: 'limites-notables-numero-e-upl'
+    name: 'Límites Notables del Número e (Formulario UPL)'
+    latex: '\lim_{x \to \infty} \left(1 + \frac{1}{x}\right)^x = e, \quad \lim_{x \to \infty} \left(1 + \frac{k}{x}\right)^x = e^k, \quad \lim_{x \to \infty} \left(1 + \frac{k}{x+a}\right)^{x+a} = e^k'
+    description: 'Familia generalizada del límite exponencial para resolver indeterminaciones del tipo 1^{\infty}.'
+    tags: ["limites", "numero-e", "indeterminacion", "upl"]
   - id: 'teorema-bolzano-ceros'
     name: 'Teorema de Bolzano (Existencia de Raíces)'
     latex: 'f \in C[a, b] \land f(a) \cdot f(b) < 0 \implies \exists c \in (a, b) : f(c) = 0'
@@ -61,15 +61,33 @@ En Análisis Matemático I para ingeniería, el estudio riguroso de las funcione
 
 ---
 
-## 1. Indeterminaciones y Técnicas de Resolución
+## 1. Límites Notables del Formulario Oficial UPL
+
+Para resolver indeterminaciones $[\frac{0}{0}]$ y $[1^\infty]$ sin necesidad de recurrir a la regla de L'Hôpital:
+
+### Límites Trigonométricos Fundamentales
+
+$$\lim_{x \to 0} \frac{\sin x}{x} = 1, \qquad \lim_{x \to 0} \frac{x}{\sin x} = 1, \qquad \lim_{x \to 0} \frac{\tan x}{x} = 1$$
+
+### Límites Exponenciales del Número $e$
+
+$$\lim_{x \to \infty} \left(1 + \frac{1}{x}\right)^x = e$$
+
+$$\lim_{x \to \infty} \left(1 + \frac{k}{x}\right)^x = e^k$$
+
+$$\lim_{x \to \infty} \left(1 + \frac{k}{x+a}\right)^{x+a} = e^k$$
+
+---
+
+## 2. Indeterminaciones y Técnicas de Resolución
 
 | Indeterminación | Técnica Analítica Principal |
 |---|---|
 | $[\frac{0}{0}]$ algebraica | Factorización por Ruffini, simplificación o racionalización con binomio conjugado |
-| $[\frac{0}{0}]$ trigonométrica | Sustitución por infinitésimos equivalentes ($\sin x \sim x, \; 1-\cos x \sim \frac{x^2}{2}, \; \ln(1+x) \sim x$) |
+| $[\frac{0}{0}]$ trigonométrica | Sustitución por infinitésimos equivalentes ($\sin x \sim x, \; \tan x \sim x, \; 1-\cos x \sim \frac{x^2}{2}$) |
 | $[\frac{\infty}{\infty}]$ | División de numerador y denominador por la máxima potencia de $x$ dominante |
 | $[\infty - \infty]$ con raíces | Multiplicación y división por el conjugado radical $(\sqrt{A} - \sqrt{B})\frac{\sqrt{A}+\sqrt{B}}{\sqrt{A}+\sqrt{B}}$ |
-| $[1^\infty]$ | Transformación exponencial: $\lim u(x)^{v(x)} = e^{\lim v(x)[u(x) - 1]}$ |
+| $[1^\infty]$ | Transformación exponencial o aplicación de los límites notables tipo $\left(1 + \frac{k}{x}\right)^x = e^k$ |
 
 > [!NOTE]
 > **Jerarquía de Órdenes de Infinito ($x \to \infty$):**
