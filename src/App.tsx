@@ -9,6 +9,8 @@ import {
   deleteTopicFile,
 } from './services/desktopBridge';
 import { ModuleManifest, Topic, TopicSummary, FormulaItem, SearchIndexEntry } from './types/modules';
+import { TodoItem } from './types/todo';
+import { getStoredTodos, saveStoredTodos } from './services/todoStorage';
 import { Sidebar, ActiveViewType } from './components/Sidebar';
 import { TopicViewer } from './components/TopicViewer';
 import { CommandPalette } from './components/CommandPalette';
@@ -92,6 +94,38 @@ export function App() {
       } catch (e) {
         console.error(e);
       }
+      return updated;
+    });
+  };
+
+  // Student Agenda / TO-DO state with localStorage persistence
+  const [todos, setTodos] = useState<TodoItem[]>(() => getStoredTodos());
+
+  const handleToggleTodo = (id: string) => {
+    setTodos(prev => {
+      const updated = prev.map(t => (t.id === id ? { ...t, completed: !t.completed } : t));
+      saveStoredTodos(updated);
+      return updated;
+    });
+  };
+
+  const handleAddTodo = (newTodoData: Omit<TodoItem, 'id' | 'createdAt'>) => {
+    const newItem: TodoItem = {
+      ...newTodoData,
+      id: 'todo-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      createdAt: Date.now(),
+    };
+    setTodos(prev => {
+      const updated = [newItem, ...prev];
+      saveStoredTodos(updated);
+      return updated;
+    });
+  };
+
+  const handleDeleteTodo = (id: string) => {
+    setTodos(prev => {
+      const updated = prev.filter(t => t.id !== id);
+      saveStoredTodos(updated);
       return updated;
     });
   };
@@ -483,6 +517,10 @@ export function App() {
               onNewNote={handleOpenNewNoteModal}
               onDeleteNote={handleDeleteNote}
               favoritesCount={favorites.length}
+              todos={todos}
+              onToggleTodo={handleToggleTodo}
+              onAddTodo={handleAddTodo}
+              onDeleteTodo={handleDeleteTodo}
             />
           </div>
         )}
@@ -521,6 +559,10 @@ export function App() {
                   setIsMobileSidebarOpen(false);
                 }}
                 favoritesCount={favorites.length}
+                todos={todos}
+                onToggleTodo={handleToggleTodo}
+                onAddTodo={handleAddTodo}
+                onDeleteTodo={handleDeleteTodo}
               />
             </div>
           </div>
