@@ -54,27 +54,14 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   const userNotes = allTopics.filter(t => t.isUserNote);
 
   // Active note state
-  const [activeNote, setActiveNote] = useState<Topic>(() => {
+  const [activeNote, setActiveNote] = useState<Topic | null>(() => {
     if (initialTopic && initialTopic.isUserNote) return initialTopic;
     if (userNotes.length > 0) return userNotes[0];
-    return {
-      slug: 'mis-apuntes-generales',
-      moduleId: manifests[0]?.id || 'algebra',
-      moduleName: manifests[0]?.name || 'Álgebra',
-      title: 'Mis Apuntes y Fórmulas',
-      unit: 'Apuntes Personales',
-      order: 100,
-      tags: ['apuntes', 'notas'],
-      description: 'Lienzo para escribir notas, fórmulas y apuntes rápidos',
-      variables: [],
-      formulas: [],
-      content: `# Mis Apuntes y Fórmulas\n\nHaz clic derecho o usa la barra superior para dar formato:\n- Subrayado\n- Rayado (tachado)\n- Título 1, 2, 3 o texto común\n- Fórmulas matemáticas y código\n\n$$\n\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)\n$$\n\n¡Todo lo que escribas aquí se ve con el formato real aplicado directamente en pantalla!\n`,
-      isUserNote: true,
-    };
+    return null;
   });
 
-  const [noteTitle, setNoteTitle] = useState(activeNote.title);
-  const [content, setContent] = useState(activeNote.content);
+  const [noteTitle, setNoteTitle] = useState(activeNote?.title || '');
+  const [content, setContent] = useState(activeNote?.content || '');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [editorMode, setEditorMode] = useState<'visual' | 'markdown'>('visual');
   const [viewLayout, setViewLayout] = useState<'canvas-only' | 'split'>('canvas-only');
@@ -86,21 +73,42 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Sync activeNote with changes to initialTopic or userNotes
+  useEffect(() => {
+    if (initialTopic && initialTopic.isUserNote) {
+      setActiveNote(initialTopic);
+    } else if (!activeNote && userNotes.length > 0) {
+      setActiveNote(userNotes[0]);
+    } else if (activeNote && !userNotes.some(n => n.slug === activeNote.slug && n.moduleId === activeNote.moduleId)) {
+      setActiveNote(userNotes.length > 0 ? userNotes[0] : null);
+    }
+  }, [initialTopic, userNotes]);
+
   // Sync when active note changes
   useEffect(() => {
-    setNoteTitle(activeNote.title);
-    setContent(activeNote.content);
-    setSaveStatus('saved');
+    if (activeNote) {
+      setNoteTitle(activeNote.title);
+      setContent(activeNote.content);
+      setSaveStatus('saved');
 
-    // Populate visual editor with rendered HTML
-    if (visualEditorRef.current) {
-      visualEditorRef.current.innerHTML = markdownToHtml(activeNote.content);
+      // Populate visual editor with rendered HTML
+      if (visualEditorRef.current) {
+        visualEditorRef.current.innerHTML = markdownToHtml(activeNote.content);
+      }
+    } else {
+      setNoteTitle('');
+      setContent('');
+      setSaveStatus('saved');
+      if (visualEditorRef.current) {
+        visualEditorRef.current.innerHTML = '';
+      }
     }
-  }, [activeNote.slug, activeNote.moduleId]);
+  }, [activeNote?.slug, activeNote?.moduleId]);
 
   // Debounced auto-save directly to disk & localStorage
   const triggerAutoSave = useCallback(
     (newTitle: string, newBody: string) => {
+      if (!activeNote) return;
       setSaveStatus('unsaved');
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -186,6 +194,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   };
 
   const handleExportPdf = () => {
+    if (!activeNote) return;
     setIsOptionsMenuOpen(false);
     exportTopicToPdf({
       title: noteTitle,
@@ -214,12 +223,8 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
       onDeleteNote?.(noteToDelete);
       onTopicCreated?.();
       const remaining = userNotes.filter(n => n.slug !== noteToDelete.slug);
-      if (activeNote.slug === noteToDelete.slug) {
-        if (remaining.length > 0) {
-          setActiveNote(remaining[0]);
-        } else {
-          handleCreateNewNote();
-        }
+      if (activeNote?.slug === noteToDelete.slug) {
+        setActiveNote(remaining.length > 0 ? remaining[0] : null);
       }
     }
   };
@@ -470,7 +475,7 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
             </div>
           ) : (
             userNotes.map(note => {
-              const isSelected = activeNote.slug === note.slug;
+              const isSelected = activeNote?.slug === note.slug;
               return (
                 <div
                   key={note.slug}
@@ -512,8 +517,29 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
 
       {/* 2. Main Writing Canvas Area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#09090b]">
-        {/* Top Header Bar */}
-        <div className="px-6 py-2.5 bg-black border-b border-zinc-800 flex items-center justify-between shrink-0">
+        {!activeNote ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#09090b]">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 text-[#a78bfa] shadow-lg shadow-purple-950/20">
+              <PenTool className="w-8 h-8" />
+            </div>
+            <h2 className="text-base sm:text-lg font-semibold text-white mb-2 font-sans">
+              No tienes notas personales todavía
+            </h2>
+            <p className="text-xs text-zinc-400 max-w-md mb-6 leading-relaxed font-sans">
+              Crea tus propios apuntes con soporte de fórmulas LaTeX, resúmenes de cursada, bloques de código y exportación directa a PDF.
+            </p>
+            <button
+              onClick={handleCreateNewNote}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#7c3aed] text-white hover:bg-[#6d28d9] font-medium text-xs shadow-md transition-all cursor-pointer font-sans"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Crear mi primera nota</span>
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Top Header Bar */}
+            <div className="px-6 py-2.5 bg-black border-b border-zinc-800 flex items-center justify-between shrink-0">
           {/* Note Title Input Directly on Canvas */}
           <div className="flex items-center gap-2 flex-1 min-w-0 mr-4">
             <span className="text-[#a78bfa] text-sm font-mono font-bold">#</span>
@@ -898,6 +924,8 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
             <span>Lienzo Activo IngeData</span>
           </div>
         </div>
+        </>
+        )}
       </main>
     </div>
   );
