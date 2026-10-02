@@ -59,16 +59,20 @@ export const GraphView: React.FC<GraphViewProps> = ({
         ? manifests
         : manifests.filter(m => m.id === selectedModuleFilter);
 
-    // 1. Add Module Hub Nodes
-    activeManifests.forEach(m => {
+    // 1. Add Module Hub Nodes with spacious distributed positions in a wide circle
+    activeManifests.forEach((m, idx) => {
+      const angle = (idx / activeManifests.length) * 2 * Math.PI - Math.PI / 2;
+      const initialR = activeManifests.length > 1 ? 520 : 0;
       nList.push({
         id: `mod-${m.id}`,
         label: m.name,
         type: 'module',
         moduleId: m.id,
         moduleName: m.name,
-        radius: 18,
+        radius: 20,
         color: moduleColors[m.id] || '#7c3aed',
+        x: Math.cos(angle) * initialR,
+        y: Math.sin(angle) * initialR,
       });
     });
 
@@ -78,51 +82,52 @@ export const GraphView: React.FC<GraphViewProps> = ({
         ? topics
         : topics.filter(t => t.moduleId === selectedModuleFilter);
 
+    // Group topics per module to give them initial circular offsets
+    const topicsByModule: Record<string, TopicSummary[]> = {};
     activeTopics.forEach(t => {
-      const nodeId = `topic-${t.moduleId}-${t.slug}`;
-      const baseColor = moduleColors[t.moduleId] || '#8b5cf6';
+      if (!topicsByModule[t.moduleId]) topicsByModule[t.moduleId] = [];
+      topicsByModule[t.moduleId].push(t);
+    });
 
-      nList.push({
-        id: nodeId,
-        label: t.title,
-        type: 'topic',
-        moduleId: t.moduleId,
-        moduleName: t.moduleName,
-        unit: t.unit,
-        radius: Math.min(12, 6 + (t.formulaCount || 1) * 1.2),
-        color: baseColor,
-        formulaCount: t.formulaCount || 0,
-      });
+    activeManifests.forEach((m, mIdx) => {
+      const modAngle = (mIdx / activeManifests.length) * 2 * Math.PI - Math.PI / 2;
+      const modX = Math.cos(modAngle) * (activeManifests.length > 1 ? 520 : 0);
+      const modY = Math.sin(modAngle) * (activeManifests.length > 1 ? 520 : 0);
+      const modTopics = topicsByModule[m.id] || [];
 
-      // Link topic to module hub
-      if (activeManifests.some(m => m.id === t.moduleId)) {
+      modTopics.forEach((t, tIdx) => {
+        const nodeId = `topic-${t.moduleId}-${t.slug}`;
+        const baseColor = moduleColors[t.moduleId] || '#8b5cf6';
+        const topicAngle = (tIdx / modTopics.length) * 2 * Math.PI;
+        const initDist = 160;
+
+        nList.push({
+          id: nodeId,
+          label: t.title,
+          type: 'topic',
+          moduleId: t.moduleId,
+          moduleName: t.moduleName,
+          unit: t.unit,
+          radius: Math.min(13, 7 + (t.formulaCount || 1) * 1.1),
+          color: baseColor,
+          formulaCount: t.formulaCount || 0,
+          x: modX + Math.cos(topicAngle) * initDist,
+          y: modY + Math.sin(topicAngle) * initDist,
+        });
+
+        // Independent parent-child link only (pure starburst / solar system)
         lList.push({
           source: `mod-${t.moduleId}`,
           target: nodeId,
           value: 1,
         });
-      }
+      });
     });
-
-    // 3. Add inter-topic links (topics in the same unit or sharing tags)
-    for (let i = 0; i < activeTopics.length; i++) {
-      for (let j = i + 1; j < activeTopics.length; j++) {
-        const t1 = activeTopics[i];
-        const t2 = activeTopics[j];
-        if (t1.moduleId === t2.moduleId && t1.unit === t2.unit) {
-          lList.push({
-            source: `topic-${t1.moduleId}-${t1.slug}`,
-            target: `topic-${t2.moduleId}-${t2.slug}`,
-            value: 0.5,
-          });
-        }
-      }
-    }
 
     return { nodes: nList, links: lList };
   }, [manifests, topics, selectedModuleFilter]);
 
-  // D3 Simulation setup with closer, tighter spacing
+  // D3 Simulation setup: generous radial spacing, strong subject separation, gentle center hold
   useEffect(() => {
     if (!svgRef.current) return;
 
@@ -151,7 +156,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
     // Zoom behavior
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.2, 5])
+      .scaleExtent([0.1, 5])
       .on('zoom', event => {
         container.attr('transform', event.transform);
       });
@@ -159,16 +164,14 @@ export const GraphView: React.FC<GraphViewProps> = ({
     svg.call(zoom);
     zoomRef.current = zoom;
 
-    // Initial center transform (comfortable 0.9 scale)
-    svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.9));
+    // Initial center transform (0.55 scale to view all spaced-out subjects comfortably)
+    const initialScale = selectedModuleFilter === 'all' ? 0.55 : 0.85;
+    svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(initialScale));
 
-    // Balanced distances: close and readable without any overlap
-    const linkDist = density === 'compact' ? 68 : density === 'normal' ? 95 : 140;
-    const subDist = density === 'compact' ? 42 : density === 'normal' ? 62 : 90;
-    const chargeStrength = density === 'compact' ? -85 : density === 'normal' ? -130 : -200;
-    const collideMargin = density === 'compact' ? 14 : density === 'normal' ? 18 : 24;
+    // Generous distance from module hub to topics so children never superimpose
+    const linkDist = density === 'compact' ? 140 : density === 'normal' ? 180 : 230;
 
-    // Force simulation configured with strong collision prevention and zero overlap
+    // Force simulation: independent materias well separated with strong module repulsion
     const simulation = d3
       .forceSimulation<GraphNode>(nodes)
       .force(
@@ -176,15 +179,34 @@ export const GraphView: React.FC<GraphViewProps> = ({
         d3
           .forceLink<GraphNode, GraphLink>(links)
           .id(d => d.id)
-          .distance(d => (d.value === 1 ? linkDist : subDist))
+          .distance(linkDist)
+          .strength(0.75)
       )
-      .force('charge', d3.forceManyBody().strength(chargeStrength))
-      .force('collide', d3.forceCollide().radius(d => (d as GraphNode).radius + collideMargin).strength(1.0))
-      .force('x', d3.forceX(0).strength(0.012))
-      .force('y', d3.forceY(0).strength(0.012))
+      // Strong repulsion between module hubs so subjects maintain substantial separation
+      .force(
+        'charge',
+        d3.forceManyBody().strength(d => {
+          const node = d as GraphNode;
+          return node.type === 'module' ? -950 : -45;
+        })
+      )
+      // Collision detection to prevent any nodes from overlapping
+      .force(
+        'collide',
+        d3
+          .forceCollide()
+          .radius(d => {
+            const node = d as GraphNode;
+            return node.type === 'module' ? 42 : 24;
+          })
+          .strength(0.95)
+      )
+      // Gentle center hold: stops them from escaping infinitely without clumping them together
+      .force('x', d3.forceX(0).strength(0.018))
+      .force('y', d3.forceY(0).strength(0.018))
       .force('center', d3.forceCenter(0, 0));
 
-    // Links render
+    // Links render (pure independent links from parent to child)
     const link = container
       .append('g')
       .attr('class', 'links')
@@ -234,14 +256,23 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .attr('filter', d => (d.type === 'module' ? 'url(#glow)' : null))
       .attr('opacity', 0.95);
 
-    // Node labels
+    // Format label to concise title (Obsidian style) to avoid clutter, full title expands on hover
+    const formatLabel = (d: GraphNode) => {
+      if (d.type === 'module') return d.label;
+      return d.label.length > 22 ? d.label.slice(0, 20) + '…' : d.label;
+    };
+
+    // Node labels with dark halo outline for maximum legibility and contrast
     node
       .append('text')
-      .text(d => d.label)
-      .attr('font-size', d => (d.type === 'module' ? '11px' : '8.5px'))
-      .attr('font-weight', d => (d.type === 'module' ? 'bold' : '500'))
+      .text(d => formatLabel(d))
+      .attr('font-size', d => (d.type === 'module' ? '12px' : '9px'))
+      .attr('font-weight', d => (d.type === 'module' ? '700' : '500'))
       .attr('fill', d => (d.type === 'module' ? '#ffffff' : '#e4e4e7'))
-      .attr('dx', d => d.radius + 3)
+      .attr('stroke', '#09090b')
+      .attr('stroke-width', 3.5)
+      .attr('paint-order', 'stroke fill')
+      .attr('dx', d => d.radius + 4)
       .attr('dy', '.35em')
       .attr('pointer-events', 'none')
       .attr('font-family', 'ui-sans-serif, system-ui, sans-serif')
@@ -249,8 +280,11 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
     // Hover & click events
     node
-      .on('mouseover', (_event, d) => {
+      .on('mouseover', (event, d) => {
         setHoveredNode(d);
+        // Expand label of hovered node to full title
+        d3.select(event.currentTarget).select('text').text(d.label).attr('opacity', 1);
+
         const connectedIds = new Set<string>();
         connectedIds.add(d.id);
         links.forEach(l => {
@@ -271,8 +305,14 @@ export const GraphView: React.FC<GraphViewProps> = ({
               : '#27272a'
           );
       })
-      .on('mouseout', () => {
+      .on('mouseout', (event, d) => {
         setHoveredNode(null);
+        // Restore concise label
+        d3.select(event.currentTarget)
+          .select('text')
+          .text(formatLabel(d))
+          .attr('opacity', d.type === 'module' ? 1 : 0.85);
+
         node.attr('opacity', 0.95);
         link.attr('stroke-opacity', 0.6).attr('stroke', '#27272a');
       })
@@ -317,12 +357,13 @@ export const GraphView: React.FC<GraphViewProps> = ({
     if (svgRef.current && zoomRef.current) {
       const width = svgRef.current.clientWidth || 800;
       const height = svgRef.current.clientHeight || 600;
+      const targetScale = selectedModuleFilter === 'all' ? 0.55 : 0.85;
       d3.select(svgRef.current)
         .transition()
         .duration(350)
         .call(
           zoomRef.current.transform,
-          d3.zoomIdentity.translate(width / 2, height / 2).scale(1.15)
+          d3.zoomIdentity.translate(width / 2, height / 2).scale(targetScale)
         );
     }
   };
@@ -363,33 +404,30 @@ export const GraphView: React.FC<GraphViewProps> = ({
           <span className="text-zinc-400">Separación:</span>
           <button
             onClick={() => setDensity('compact')}
-            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-              density === 'compact'
+            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${density === 'compact'
                 ? 'bg-white text-black font-semibold'
                 : 'text-zinc-400 hover:text-white'
-            }`}
+              }`}
             title="Nodos muy cercanos y agrupados"
           >
             Cercana
           </button>
           <button
             onClick={() => setDensity('normal')}
-            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-              density === 'normal'
+            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${density === 'normal'
                 ? 'bg-white text-black font-semibold'
                 : 'text-zinc-400 hover:text-white'
-            }`}
+              }`}
             title="Separación estándar"
           >
             Media
           </button>
           <button
             onClick={() => setDensity('relaxed')}
-            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-              density === 'relaxed'
+            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${density === 'relaxed'
                 ? 'bg-white text-black font-semibold'
                 : 'text-zinc-400 hover:text-white'
-            }`}
+              }`}
             title="Mayor dispersión"
           >
             Amplia
