@@ -57,6 +57,15 @@ export const GraphView: React.FC<GraphViewProps> = ({
     'analisis-numerico': '#f43f5e', // Rose
   };
 
+  const COLOR_HEX: Record<string, string> = {
+    violet: '#8b5cf6',
+    cyan: '#06b6d4',
+    emerald: '#10b981',
+    amber: '#f59e0b',
+    rose: '#f43f5e',
+    blue: '#3b82f6',
+  };
+
   // Build nodes & links
   const { nodes, links } = useMemo(() => {
     const nList: GraphNode[] = [];
@@ -79,7 +88,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
         moduleId: m.id,
         moduleName: m.name,
         radius: 20,
-        color: moduleColors[m.id] || '#7c3aed',
+        color: moduleColors[m.id] || COLOR_HEX[m.color] || '#8b5cf6',
         x: Math.cos(angle) * initialR,
         y: Math.sin(angle) * initialR,
       });
@@ -119,7 +128,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
       moduleFolderNames.forEach((fName, fIdx) => {
         const folderNodeId = `folder-${m.id}-${fName}`;
         const folderAngle = modAngle + ((fIdx + 1) / (moduleFolderNames.length + 1)) * Math.PI - Math.PI / 2;
-        const folderDist = 130;
+        const folderDist = 75;
 
         nList.push({
           id: folderNodeId,
@@ -128,7 +137,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
           moduleId: m.id,
           moduleName: m.name,
           folderName: fName,
-          radius: 16,
+          radius: 11, // Subordinate satellite to parent module hub (radius 20)
           color: '#c084fc', // Lilac for folders
           x: modX + Math.cos(folderAngle) * folderDist,
           y: modY + Math.sin(folderAngle) * folderDist,
@@ -236,8 +245,12 @@ export const GraphView: React.FC<GraphViewProps> = ({
         d3
           .forceLink<GraphNode, GraphLink>(links)
           .id(d => d.id)
-          .distance(linkDist)
-          .strength(0.75)
+          .distance(l => {
+            const tgt = typeof l.target === 'object' ? (l.target as GraphNode) : nodes.find(n => n.id === l.target);
+            if (tgt && tgt.type === 'folder') return density === 'compact' ? 50 : 70;
+            return linkDist;
+          })
+          .strength(0.8)
       )
       // Strong repulsion between module hubs so subjects maintain substantial separation
       .force(
@@ -245,7 +258,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
         d3.forceManyBody().strength(d => {
           const node = d as GraphNode;
           if (node.type === 'module') return -950;
-          if (node.type === 'folder') return -240;
+          if (node.type === 'folder') return -70;
           return -45;
         })
       )
@@ -257,7 +270,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
           .radius(d => {
             const node = d as GraphNode;
             if (node.type === 'module') return 44;
-            if (node.type === 'folder') return 34;
+            if (node.type === 'folder') return 16;
             return 24;
           })
           .strength(0.95)
@@ -275,8 +288,20 @@ export const GraphView: React.FC<GraphViewProps> = ({
       .data(links)
       .enter()
       .append('line')
-      .attr('stroke', '#27272a')
-      .attr('stroke-opacity', 0.6)
+      .attr('stroke', d => {
+        const src = typeof d.source === 'object' ? (d.source as GraphNode) : nodes.find(n => n.id === d.source);
+        const tgt = typeof d.target === 'object' ? (d.target as GraphNode) : nodes.find(n => n.id === d.target);
+        if (src?.type === 'module' && tgt?.type === 'folder') {
+          return src.color || '#a78bfa';
+        }
+        return '#27272a';
+      })
+      .attr('stroke-opacity', d => {
+        const src = typeof d.source === 'object' ? (d.source as GraphNode) : nodes.find(n => n.id === d.source);
+        const tgt = typeof d.target === 'object' ? (d.target as GraphNode) : nodes.find(n => n.id === d.target);
+        if (src?.type === 'module' && tgt?.type === 'folder') return 0.7;
+        return 0.55;
+      })
       .attr('stroke-width', d => Math.max(1, d.value * 1.5));
 
     // Nodes container
@@ -311,11 +336,11 @@ export const GraphView: React.FC<GraphViewProps> = ({
     node
       .append('circle')
       .attr('r', d => d.radius)
-      .attr('fill', d => (d.type === 'folder' ? '#3b0764' : d.color))
+      .attr('fill', d => (d.type === 'folder' ? '#2e1065' : d.color))
       .attr('stroke', d => (d.type === 'folder' ? '#c084fc' : '#09090b'))
-      .attr('stroke-width', 2)
-      .attr('stroke-dasharray', d => (d.type === 'folder' ? '3,2' : null))
-      .attr('filter', d => (d.type === 'module' || d.type === 'folder' ? 'url(#glow)' : null))
+      .attr('stroke-width', d => (d.type === 'folder' ? 1.5 : 2))
+      .attr('stroke-dasharray', d => (d.type === 'folder' ? '2,2' : null))
+      .attr('filter', d => (d.type === 'module' ? 'url(#glow)' : null))
       .attr('opacity', 0.95);
 
     // Format label to concise title (Obsidian style) to avoid clutter, full title expands on hover

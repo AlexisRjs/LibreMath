@@ -63,6 +63,7 @@ export interface ModuleManifest {
     title: string;
   }[];
   topicSlugs: string[];
+  isCustom?: boolean;
 }
 
 export interface TopicSummary {

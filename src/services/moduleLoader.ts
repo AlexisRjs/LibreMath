@@ -1,5 +1,6 @@
 import yaml from 'js-yaml';
 import { ModuleManifest, Topic, TopicMetadata, SearchIndexEntry } from '../types/modules';
+import { getStoredCustomModules } from './customModuleStorage';
 
 // Import all manifests and topics dynamically from modules directory
 const rawModules = import.meta.glob('/modules/**/*.{md,json}', {
@@ -138,6 +139,12 @@ export function loadAllModules(): ParsedModuleData {
         console.error(`Error parsing manifest at ${filepath}:`, e);
       }
     }
+  }
+
+  // 1b. Load user-created custom modules from localStorage
+  const customModules = getStoredCustomModules();
+  for (const cm of customModules) {
+    manifestsMap.set(cm.id, cm);
   }
 
   // 2. Process topic markdown files

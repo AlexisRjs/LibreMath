@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ModuleManifest } from '../types/modules';
+import { ModuleManifest, UserFolder, Topic, TopicSummary } from '../types/modules';
 import { X, FilePlus, Sparkles, Folder, Tag, Layers, AlignLeft, FolderPlus } from 'lucide-react';
 
 interface NewNoteModalProps {
@@ -9,6 +9,8 @@ interface NewNoteModalProps {
   defaultModuleId?: string;
   defaultFolder?: string;
   availableFolders?: string[];
+  allFolders?: UserFolder[];
+  allTopics?: (Topic | TopicSummary)[];
   onCreateNote: (noteData: {
     moduleId: string;
     title: string;
@@ -27,6 +29,8 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
   defaultModuleId,
   defaultFolder,
   availableFolders = [],
+  allFolders = [],
+  allTopics = [],
   onCreateNote,
 }) => {
   const [selectedModule, setSelectedModule] = useState<string>(
@@ -42,6 +46,20 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
   const [description, setDescription] = useState('Anotaciones y apuntes de estudio');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Compute available folders dynamically based on currently selected module
+  const computedAvailableFolders = React.useMemo(() => {
+    if (allFolders.length > 0 || allTopics.length > 0) {
+      const fromStored = allFolders
+        .filter(f => f.moduleId === selectedModule)
+        .map(f => f.name);
+      const fromTopics = allTopics
+        .filter(t => t.moduleId === selectedModule && t.folder)
+        .map(t => t.folder as string);
+      return Array.from(new Set([...fromStored, ...fromTopics]));
+    }
+    return availableFolders;
+  }, [allFolders, allTopics, selectedModule, availableFolders]);
 
   // Sync selectedModule when defaultModuleId changes
   useEffect(() => {
@@ -218,7 +236,7 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
                 type="text"
                 value={customFolderName}
                 onChange={e => setCustomFolderName(e.target.value)}
-                placeholder="Nombre de la nueva carpeta (ej: Trabajos Prácticos, Resúmenes)"
+                placeholder="Nombre de la nueva carpeta dentro de esta materia..."
                 className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white placeholder:text-zinc-500 focus:outline-hidden focus:border-[#7c3aed] transition-colors text-xs"
               />
             ) : (
@@ -228,7 +246,7 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
                 className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:outline-hidden focus:border-[#7c3aed] transition-colors text-xs cursor-pointer"
               >
                 <option value="">(Raíz de la materia / Sin carpeta)</option>
-                {availableFolders.map(f => (
+                {computedAvailableFolders.map(f => (
                   <option key={f} value={f} className="bg-[#0e0e12]">
                     📁 {f}
                   </option>
