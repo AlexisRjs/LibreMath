@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ModuleManifest, Topic, TopicSummary, UserFolder } from '../types/modules';
 import { TodoItem } from '../types/todo';
 import { TodoSidebarPanel } from './TodoSidebarPanel';
+import { NewFolderModal } from './NewFolderModal';
 import {
   FolderOpen,
   ChevronRight,
@@ -21,6 +22,7 @@ import {
   Trash2,
   Sigma,
   CalendarCheck,
+  Timer,
 } from 'lucide-react';
 
 export type ActiveViewType =
@@ -29,7 +31,8 @@ export type ActiveViewType =
   | 'matrix-calculator'
   | 'formula-evaluator'
   | 'favorites'
-  | 'graph';
+  | 'graph'
+  | 'pomodoro';
 
 interface SidebarProps {
   manifests: ModuleManifest[];
@@ -40,14 +43,17 @@ interface SidebarProps {
   setActiveView: (view: ActiveViewType) => void;
   onOpenSearch: () => void;
   onNewNote?: (moduleId?: string, folder?: string) => void;
+  onOpenNewFolderModal?: () => void;
   onDeleteNote?: (topic: Topic | TopicSummary) => void;
+  onDeleteModule?: (moduleId: string) => void;
+  isPomodoroActive?: boolean;
   favoritesCount: number;
   todos?: TodoItem[];
   onToggleTodo?: (id: string) => void;
   onAddTodo?: (todo: Omit<TodoItem, 'id' | 'createdAt'>) => void;
   onDeleteTodo?: (id: string) => void;
   folders?: UserFolder[];
-  onCreateFolder?: (name: string, moduleId: string) => void;
+  onCreateFolder?: (name: string, color?: 'cyan' | 'violet' | 'amber' | 'emerald' | 'blue' | 'rose') => void;
   onDeleteFolder?: (folderId: string) => void;
 }
 
@@ -60,7 +66,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setActiveView,
   onOpenSearch,
   onNewNote,
+  onOpenNewFolderModal,
   onDeleteNote,
+  onDeleteModule,
+  isPomodoroActive = false,
   favoritesCount,
   todos = [],
   onToggleTodo,
@@ -79,10 +88,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
     'fisica-2': false,
   });
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
-  const [creatingFolderModuleId, setCreatingFolderModuleId] = useState<string | null>(null);
-  const [newFolderNameInput, setNewFolderNameInput] = useState('');
+  const [isInternalFolderModalOpen, setIsInternalFolderModalOpen] = useState(false);
 
   const pendingTodosCount = todos.filter(t => !t.completed).length;
+
+  const handleOpenFolderModal = () => {
+    if (onOpenNewFolderModal) {
+      onOpenNewFolderModal();
+    } else {
+      setIsInternalFolderModalOpen(true);
+    }
+  };
+
+  const handleInternalFolderCreated = (name: string, color?: 'cyan' | 'violet' | 'amber' | 'emerald' | 'blue' | 'rose') => {
+    if (onCreateFolder) {
+      onCreateFolder(name, color);
+    }
+  };
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules(prev => ({
@@ -102,16 +124,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const next: Record<string, boolean> = {};
     manifests.forEach(m => (next[m.id] = false));
     setExpandedModules(next);
-  };
-
-  const handleCreateFolderSubmit = (moduleId: string) => {
-    const cleanName = newFolderNameInput.trim();
-    if (cleanName && onCreateFolder) {
-      onCreateFolder(cleanName, moduleId);
-      setExpandedFolders(prev => ({ ...prev, [`${moduleId}:${cleanName}`]: true }));
-    }
-    setNewFolderNameInput('');
-    setCreatingFolderModuleId(null);
   };
 
   const getModuleTopics = (moduleId: string) =>
@@ -229,6 +241,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Sigma className="w-4 h-4" />
           </button>
+
+          {/* Pomodoro Timer */}
+          <button
+            onClick={() => setActiveView('pomodoro')}
+            className={`relative w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105 active:scale-90 ${
+              activeView === 'pomodoro'
+                ? 'bg-[#7c3aed] text-white shadow-[0_0_12px_rgba(124,58,237,0.45)]'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+            }`}
+            title="Temporizador Pomodoro"
+          >
+            <Timer className="w-4 h-4" />
+            {isPomodoroActive && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-violet-400 ring-2 ring-black animate-ping" />
+            )}
+          </button>
         </div>
 
         {/* Bottom User & Settings */}
@@ -249,10 +277,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* 2. Modern Minimalist Aside Panel (Switchable between Bóveda and Agenda TO-DO) */}
-      <aside className="w-64 h-full bg-[#09090b] border-r border-zinc-800 flex flex-col shrink-0">
+      <aside className="w-72 h-full bg-[#09090b] border-r border-zinc-800 flex flex-col shrink-0">
         {/* Top Switcher Tabs: Bóveda vs Agenda */}
-        <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-zinc-800 bg-black">
-          <div className="flex items-center gap-1 bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 text-[11px]">
+        <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-zinc-800 bg-black min-w-0">
+          <div className="flex items-center gap-1 bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 text-[11px] shrink-0">
             <button
               onClick={() => setSidebarPanelTab('files')}
               className={`px-2 py-0.5 rounded-md transition-all flex items-center gap-1.5 cursor-pointer ${
@@ -283,28 +311,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {sidebarPanelTab === 'files' && (
-            <div className="flex items-center gap-1 text-zinc-400">
+            <div className="flex items-center gap-0.5 text-zinc-400 shrink-0">
               <button
                 onClick={() => (onNewNote ? onNewNote() : setActiveView('my-notes'))}
-                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer shrink-0"
                 title="Nueva nota Markdown"
               >
                 <FilePlus className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => {
-                  const targetMod = manifests[0]?.id || 'algebra';
-                  setCreatingFolderModuleId(targetMod);
-                  setExpandedModules(prev => ({ ...prev, [targetMod]: true }));
-                }}
-                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
-                title="Nueva carpeta en la materia activa"
+                onClick={() => handleOpenFolderModal()}
+                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer shrink-0"
+                title="Nueva materia / carpeta raíz"
               >
                 <FolderPlus className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={collapseAll}
-                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer shrink-0"
                 title="Colapsar todo"
               >
                 <ChevronsDownUp className="w-3.5 h-3.5" />
@@ -387,22 +411,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         isExpanded ? 'rotate-90 text-zinc-200' : 'text-zinc-500 group-hover:text-zinc-300'
                       }`}
                     />
+                    {isExpanded ? (
+                      <FolderOpen className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
+                    ) : (
+                      <Folder className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-200 shrink-0" />
+                    )}
                     <span className="truncate font-semibold">{manifest.name}</span>
                   </button>
 
                   <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all shrink-0">
-                    {/* Add folder to this module */}
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        setExpandedModules(prev => ({ ...prev, [manifest.id]: true }));
-                        setCreatingFolderModuleId(manifest.id);
-                      }}
-                      className="p-1 rounded text-zinc-500 hover:text-white hover:bg-zinc-800 hover:scale-110 active:scale-90 transition-all duration-150"
-                      title={`Nueva carpeta en ${manifest.name}`}
-                    >
-                      <FolderPlus className="w-3.5 h-3.5" />
-                    </button>
+                    {/* Delete custom module if user-created */}
+                    {manifest.isCustom && onDeleteModule && (
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (confirm(`¿Eliminar la materia "${manifest.name}" y todas sus notas?`)) {
+                            onDeleteModule(manifest.id);
+                          }
+                        }}
+                        className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-950/40 hover:scale-110 active:scale-90 transition-all duration-150"
+                        title={`Eliminar materia ${manifest.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     {/* Add Note directly to this subject */}
                     <button
                       onClick={e => {
@@ -628,61 +660,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       );
                     })}
 
-                    {/* Inline Folder Creation Input */}
-                    {creatingFolderModuleId === manifest.id && (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-zinc-900 rounded border border-[#7c3aed]/40 my-1">
-                        <Folder className="w-3 h-3 text-[#a78bfa] shrink-0" />
-                        <input
-                          type="text"
-                          placeholder="Nombre de la carpeta..."
-                          value={newFolderNameInput}
-                          onChange={e => setNewFolderNameInput(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') handleCreateFolderSubmit(manifest.id);
-                            if (e.key === 'Escape') {
-                              setCreatingFolderModuleId(null);
-                              setNewFolderNameInput('');
-                            }
-                          }}
-                          className="flex-1 bg-transparent text-[11px] text-white placeholder-zinc-500 outline-none"
-                          autoFocus
-                        />
-                        <button
-                          onClick={() => handleCreateFolderSubmit(manifest.id)}
-                          className="px-1.5 py-0.5 bg-[#7c3aed] text-white rounded text-[10px] hover:bg-[#6d28d9] transition-colors"
-                        >
-                          OK
-                        </button>
-                        <button
-                          onClick={() => {
-                            setCreatingFolderModuleId(null);
-                            setNewFolderNameInput('');
-                          }}
-                          className="text-zinc-400 hover:text-white text-[10px] px-1"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Action buttons inside module footer */}
+                    {/* Action button inside module footer */}
                     <div className="flex items-center gap-1 pt-0.5">
                       <button
                         onClick={() => onNewNote?.(manifest.id)}
                         className="flex-1 text-left px-2 py-1 rounded text-[11px] text-zinc-500 hover:text-[#a78bfa] hover:bg-zinc-900/40 transition-colors flex items-center gap-1 font-sans"
                       >
                         <Plus className="w-3 h-3" />
-                        <span>Nota</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setCreatingFolderModuleId(manifest.id);
-                        }}
-                        className="text-left px-2 py-1 rounded text-[11px] text-zinc-500 hover:text-[#c084fc] hover:bg-zinc-900/40 transition-colors flex items-center gap-1 font-sans"
-                        title="Crear carpeta"
-                      >
-                        <FolderPlus className="w-3 h-3" />
-                        <span>Carpeta</span>
+                        <span>Nueva Nota</span>
                       </button>
                     </div>
                   </div>
@@ -706,6 +691,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
         </div>
       </aside>
+      {/* Internal New Folder Modal fallback */}
+      <NewFolderModal
+        isOpen={isInternalFolderModalOpen}
+        onClose={() => setIsInternalFolderModalOpen(false)}
+        onCreateFolder={handleInternalFolderCreated}
+      />
     </div>
   );
 };
