@@ -12,15 +12,21 @@ import { ModuleManifest, Topic, TopicSummary, FormulaItem, SearchIndexEntry, Use
 import { TodoItem } from './types/todo';
 import { getStoredTodos, saveStoredTodos } from './services/todoStorage';
 import { getStoredFolders, createStoredFolder, deleteStoredFolder } from './services/folderStorage';
+import { createStoredCustomModule, deleteStoredCustomModule } from './services/customModuleStorage';
+import { invalidateModuleCache } from './services/moduleLoader';
 import { Sidebar, ActiveViewType } from './components/Sidebar';
 import { TopicViewer } from './components/TopicViewer';
 import { CommandPalette } from './components/CommandPalette';
 import { NewNoteModal } from './components/NewNoteModal';
+import { NewFolderModal } from './components/NewFolderModal';
 import { MatrixCalculator } from './components/calculators/MatrixCalculator';
 import { FormulaEvaluator } from './components/calculators/FormulaEvaluator';
 import { FavoritesView } from './components/FavoritesView';
 import { GraphView } from './components/GraphView';
 import { MyNotesCanvas } from './components/MyNotesCanvas';
+import { PomodoroView } from './components/PomodoroView';
+import { FloatingPomodoroWidget } from './components/FloatingPomodoroWidget';
+import { usePomodoro } from './hooks/usePomodoro';
 import {
   Menu,
   Plus,
@@ -37,6 +43,7 @@ import {
   Minus,
   Square,
   Sigma,
+  Timer,
 } from 'lucide-react';
 
 interface TabItem {
@@ -63,7 +70,9 @@ export function App() {
   const [isNewNoteModalOpen, setIsNewNoteModalOpen] = useState(false);
   const [newNoteTargetModuleId, setNewNoteTargetModuleId] = useState<string>('algebra');
   const [newNoteTargetFolder, setNewNoteTargetFolder] = useState<string | undefined>(undefined);
+  const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
   const [folders, setFolders] = useState<UserFolder[]>(() => getStoredFolders());
+  const pomodoro = usePomodoro();
 
   // Tabs state matching Obsidian
   const [tabs, setTabs] = useState<TabItem[]>([
@@ -262,6 +271,7 @@ export function App() {
       'matrix-calculator': 'Calculadora Matricial',
       'formula-evaluator': 'Banco de Fórmulas',
       favorites: 'Marcadores',
+      pomodoro: 'Pomodoro',
     }[view];
 
     setTabs(prev =>
@@ -285,6 +295,30 @@ export function App() {
     setNewNoteTargetModuleId(moduleId || selectedModuleId || 'algebra');
     setNewNoteTargetFolder(folder);
     setIsNewNoteModalOpen(true);
+  };
+
+  const handleOpenNewFolderModal = () => {
+    setIsNewFolderModalOpen(true);
+  };
+
+  const handleCreateCustomModule = (
+    name: string,
+    color?: 'cyan' | 'violet' | 'amber' | 'emerald' | 'blue' | 'rose'
+  ) => {
+    const newModule = createStoredCustomModule(name, color);
+    invalidateModuleCache();
+    loadIndexTree();
+    setSelectedModuleId(newModule.id);
+    setIsNewFolderModalOpen(false);
+  };
+
+  const handleDeleteCustomModule = (moduleId: string) => {
+    deleteStoredCustomModule(moduleId);
+    invalidateModuleCache();
+    loadIndexTree();
+    if (selectedModuleId === moduleId) {
+      setSelectedModuleId('algebra');
+    }
   };
 
   const handleCreateFolder = (name: string, moduleId: string) => {
@@ -486,6 +520,8 @@ export function App() {
                   <Sigma className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'favorites' ? (
                   <Bookmark className="w-3.5 h-3.5 text-amber-400 shrink-0 transition-transform duration-200 group-hover:scale-105" />
+                ) : tab.view === 'pomodoro' ? (
+                  <Timer className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : (
                   <FileText className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 )}
@@ -548,14 +584,17 @@ export function App() {
               setActiveView={handleSwitchView}
               onOpenSearch={() => setIsSearchOpen(true)}
               onNewNote={handleOpenNewNoteModal}
+              onOpenNewFolderModal={handleOpenNewFolderModal}
               onDeleteNote={handleDeleteNote}
+              onDeleteModule={handleDeleteCustomModule}
+              isPomodoroActive={pomodoro.isRunning}
               favoritesCount={favorites.length}
               todos={todos}
               onToggleTodo={handleToggleTodo}
               onAddTodo={handleAddTodo}
               onDeleteTodo={handleDeleteTodo}
               folders={folders}
-              onCreateFolder={handleCreateFolder}
+              onCreateFolder={handleCreateCustomModule}
               onDeleteFolder={handleDeleteFolder}
             />
           </div>
@@ -590,17 +629,26 @@ export function App() {
                   handleOpenNewNoteModal(moduleId, folder);
                   setIsMobileSidebarOpen(false);
                 }}
+                onOpenNewFolderModal={() => {
+                  handleOpenNewFolderModal();
+                  setIsMobileSidebarOpen(false);
+                }}
                 onDeleteNote={t => {
                   handleDeleteNote(t);
                   setIsMobileSidebarOpen(false);
                 }}
+                onDeleteModule={mid => {
+                  handleDeleteCustomModule(mid);
+                  setIsMobileSidebarOpen(false);
+                }}
+                isPomodoroActive={pomodoro.isRunning}
                 favoritesCount={favorites.length}
                 todos={todos}
                 onToggleTodo={handleToggleTodo}
                 onAddTodo={handleAddTodo}
                 onDeleteTodo={handleDeleteTodo}
                 folders={folders}
-                onCreateFolder={handleCreateFolder}
+                onCreateFolder={handleCreateCustomModule}
                 onDeleteFolder={handleDeleteFolder}
               />
             </div>
@@ -725,6 +773,31 @@ export function App() {
                   />
                 </div>
               )}
+
+              {activeView === 'pomodoro' && (
+                <div className="h-full overflow-hidden bg-[#09090b]">
+                  <PomodoroView
+                    mode={pomodoro.mode}
+                    timeLeft={pomodoro.timeLeft}
+                    totalDuration={pomodoro.totalDuration}
+                    isRunning={pomodoro.isRunning}
+                    studyDurationMinutes={pomodoro.studyDurationMinutes}
+                    breakDurationMinutes={pomodoro.breakDurationMinutes}
+                    customStudyMinutes={pomodoro.customStudyMinutes}
+                    customBreakMinutes={pomodoro.customBreakMinutes}
+                    selectedPresetId={pomodoro.selectedPresetId}
+                    sessionsCompleted={pomodoro.sessionsCompleted}
+                    formatTime={pomodoro.formatTime}
+                    progressPercent={pomodoro.progressPercent}
+                    onToggle={pomodoro.toggle}
+                    onReset={pomodoro.reset}
+                    onSkip={pomodoro.skip}
+                    onSelectPreset={pomodoro.selectPreset}
+                    onSetCustomDurations={pomodoro.setCustomDurations}
+                    onTestSound={pomodoro.testSound}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </main>
@@ -768,7 +841,32 @@ export function App() {
         defaultModuleId={newNoteTargetModuleId}
         defaultFolder={newNoteTargetFolder}
         availableFolders={availableFoldersForNewNote}
+        allFolders={folders}
+        allTopics={topicSummaries}
         onCreateNote={handleCreateNote}
+      />
+
+      {/* Dedicated New Folder / Materia Modal */}
+      <NewFolderModal
+        isOpen={isNewFolderModalOpen}
+        onClose={() => setIsNewFolderModalOpen(false)}
+        onCreateFolder={handleCreateCustomModule}
+      />
+
+      {/* Floating Pomodoro Widget in bottom-right corner when navigating other views */}
+      <FloatingPomodoroWidget
+        isVisible={
+          activeView !== 'pomodoro' &&
+          (pomodoro.isRunning || pomodoro.timeLeft < pomodoro.totalDuration) &&
+          !pomodoro.isWidgetDismissed
+        }
+        mode={pomodoro.mode}
+        timeLeftFormatted={pomodoro.formatTime(pomodoro.timeLeft)}
+        isRunning={pomodoro.isRunning}
+        progressPercent={pomodoro.progressPercent}
+        onToggle={pomodoro.toggle}
+        onOpenFullView={() => handleSwitchView('pomodoro')}
+        onDismiss={() => pomodoro.setIsWidgetDismissed(true)}
       />
     </div>
   );
