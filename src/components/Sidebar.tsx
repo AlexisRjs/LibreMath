@@ -23,12 +23,14 @@ import {
   Sigma,
   CalendarCheck,
   Timer,
+  Calculator,
 } from 'lucide-react';
 
 export type ActiveViewType =
   | 'topic'
   | 'my-notes'
   | 'matrix-calculator'
+  | 'calculus-calculator'
   | 'formula-evaluator'
   | 'favorites'
   | 'graph'
@@ -240,6 +242,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="Banco de Fórmulas (LaTeX Plano)"
           >
             <Sigma className="w-4 h-4" />
+          </button>
+
+          {/* Calculus Calculator (Derivatives & Integrals) */}
+          <button
+            onClick={() => setActiveView('calculus-calculator')}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105 active:scale-90 ${
+              activeView === 'calculus-calculator'
+                ? 'bg-[#7c3aed] text-white shadow-[0_0_12px_rgba(124,58,237,0.45)]'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+            }`}
+            title="Calculadora de Derivadas e Integrales (Paso a Paso)"
+          >
+            <Calculator className="w-4 h-4" />
           </button>
 
           {/* Pomodoro Timer */}
@@ -468,6 +483,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           <span className="truncate font-medium">Calculadora Matricial</span>
                           <span className="ml-auto text-[9px] px-1 py-0.2 rounded bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/40 shrink-0 font-mono">
                             calc
+                          </span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Integrated Calculus Calculator inside AM1 and AM2 */}
+                    {(manifest.id === 'am1' || manifest.id === 'am2') && (
+                      <div className="flex items-center group/calc rounded transition-colors pr-1 mb-0.5">
+                        <button
+                          onClick={() => setActiveView('calculus-calculator')}
+                          className={`flex-1 text-left px-2 py-1 rounded-md text-xs transition-all duration-150 flex items-center gap-2 min-w-0 hover:translate-x-1 active:scale-[0.99] ${
+                            activeView === 'calculus-calculator'
+                              ? 'bg-[#7c3aed]/15 text-white font-medium border-l-2 border-[#7c3aed] shadow-[inset_3px_0_10px_-2px_rgba(124,58,237,0.35)]'
+                              : 'text-zinc-300 hover:bg-zinc-900/70 hover:text-white'
+                          }`}
+                        >
+                          <Calculator className={`w-3.5 h-3.5 shrink-0 ${activeView === 'calculus-calculator' ? 'text-[#a78bfa]' : 'text-[#7c3aed]'}`} />
+                          <span className="truncate font-medium">Derivadas e Integrales</span>
+                          <span className="ml-auto text-[9px] px-1 py-0.2 rounded bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/40 shrink-0 font-mono">
+                            pasos
                           </span>
                         </button>
                       </div>

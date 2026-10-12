@@ -21,6 +21,7 @@ import { NewNoteModal } from './components/NewNoteModal';
 import { NewFolderModal } from './components/NewFolderModal';
 import { MatrixCalculator } from './components/calculators/MatrixCalculator';
 import { FormulaEvaluator } from './components/calculators/FormulaEvaluator';
+import { CalculusCalculator } from './components/calculators/CalculusCalculator';
 import { FavoritesView } from './components/FavoritesView';
 import { GraphView } from './components/GraphView';
 import { MyNotesCanvas } from './components/MyNotesCanvas';
@@ -44,6 +45,7 @@ import {
   Square,
   Sigma,
   Timer,
+  Calculator,
 } from 'lucide-react';
 
 interface TabItem {
@@ -233,6 +235,11 @@ export function App() {
         e.preventDefault();
         handleSwitchView('formula-evaluator');
       }
+      // Ctrl+3: Calculus Calculator (Derivatives & Integrals)
+      if ((e.ctrlKey || e.metaKey) && e.key === '3') {
+        e.preventDefault();
+        handleSwitchView('calculus-calculator');
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -269,6 +276,7 @@ export function App() {
       'my-notes': 'Mis Notas',
       graph: 'Vista de Grafo',
       'matrix-calculator': 'Calculadora Matricial',
+      'calculus-calculator': 'Derivadas e Integrales',
       'formula-evaluator': 'Banco de Fórmulas',
       favorites: 'Marcadores',
       pomodoro: 'Pomodoro',
@@ -516,6 +524,8 @@ export function App() {
                   <PenTool className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'matrix-calculator' ? (
                   <Grid className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
+                ) : tab.view === 'calculus-calculator' ? (
+                  <Calculator className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'formula-evaluator' ? (
                   <Sigma className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : tab.view === 'favorites' ? (
@@ -741,6 +751,12 @@ export function App() {
               {activeView === 'matrix-calculator' && (
                 <div className="h-full overflow-y-auto bg-[#09090b]">
                   <MatrixCalculator />
+                </div>
+              )}
+
+              {activeView === 'calculus-calculator' && (
+                <div className="h-full overflow-y-auto bg-[#09090b]">
+                  <CalculusCalculator />
                 </div>
               )}
 
