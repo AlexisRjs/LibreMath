@@ -71,13 +71,43 @@ Tauri combina **la velocidad y el bajísimo consumo de Rust** en el backend con 
   - Visualización de relaciones conceptuales en 2D con física de fuerzas (D3.js Force Simulation).
   - Filtro por materia, agrupación por clusters independientes y navegación fluida a 60 FPS.
 
-- 📝 **Editor de Notas Markdown**:
+- 🧮 **Calculadora Analítica Paso a Paso (AM1 y AM2)**:
+  - **Análisis Matemático I (1 Variable)**: Derivadas e Integrales indefinidas con detección automática de reglas de cátedra (potencia, producto, cociente, cadena, sustitución y por partes) con desglose pedagógico paso a paso.
+  - **Análisis Matemático II (Multivariable)**:
+    - **Funciones Vectoriales**: Curvas espaciales, vector velocidad, vector tangente unitario $\vec{T}(t)$ y curvatura $\kappa(t)$.
+    - **Derivadas Parciales**: Derivadas primer/segundo orden, Teorema de Schwarz, vector Gradiente $\nabla f$, derivada direccional y ecuación del Plano Tangente.
+    - **Extremos y Hessiana**: Puntos críticos, matriz Hessiana $H(x,y)$, discriminante $D$, clasificación rigurosa y multiplicadores de Lagrange.
+    - **Integrales Múltiples**: Integrales dobles iteradas por Teorema de Fubini y transformación analítica a coordenadas polares ($r, \theta$).
+    - **Integrales de Línea**: Verificación de campos conservativos ($\text{rot}(\vec{F}) = 0$), cálculo de función potencial $\phi$, Teorema de Green y trabajo de circulación.
+    - **Integrales de Superficie**: Cálculo de flujo, Teorema de la Divergencia de Gauss ($\text{div}(\vec{F})$) y Teorema del Rotacional de Stokes.
+    - **Ecuaciones Diferenciales (EDO)**: Lineales de primer orden mediante factor integrante $\mu(x)$, variables separables y EDO homogéneas de segundo orden con raíces del polinomio característico.
+
+- 🧮 **Calculadora Matricial y Álgebra Lineal**:
+  - Operaciones completas con matrices hasta orden 6x6.
+  - Suma, resta, multiplicación por escalar y producto de matrices.
+  - Cálculo de determinante con desarrollo por cofactores (Laplace), matriz transpuesta, matriz inversa mediante eliminación de Gauss-Jordan y rango de la matriz.
+
+- 🎨 **Interfaz Obsidian Dark Nativa y Profesional**:
+  - Diseño minimalista 100% Obsidian Dark inspirado en herramientas de productividad de alta gama.
+  - Sin emojis ruidosos en callouts ni iconografía genérica de IA: diseño tipográfico sobrio, limpio y contrastado.
+  - Compatibilidad visual perfecta con fórmulas $\LaTeX$ y bloques de código.
+
+- 👤 **Ajustes de Perfil y Saludo de Bienvenida**:
+  - Modal de ajustes para configurar el nombre del estudiante con persistencia local.
+  - Banner animado personalizado de bienvenida (*"Hola [Nombre], ¿Listo para tu sesión de estudio?"*).
+
+- 🧪 **Suite de Validación de Exámenes Finales UTN**:
+  - Suite de pruebas automatizadas con problemas reales de parciales y finales de cátedras UTN (`tests/utnExamValidation.ts`).
+  - Validación continua de precisión matemática simbólica y numérica.
+
+- 📝 **Editor de Notas Markdown con KaTeX y Exportación PDF**:
   - Editor con resaltado de sintaxis (CodeMirror 6) y renderizado matemático en tiempo real con KaTeX.
+  - Exportación directa a documentos PDF maquetados para estudio e impresión.
   - Lienzo limpio sin apuntes basura precargados: el usuario crea y gestiona sus propias notas.
 
-- 📅 **Agenda TO-DO Académica**:
-  - Registro de Parciales, Finales, Tareas y Trabajos Prácticos.
-  - Selector de fechas límite, etiquetas de prioridad cromáticas (alta, media, baja) y persistencia local.
+- 🕸️ **Grafo Interactivo de Conceptos (Knowledge Graph)**:
+  - Visualización de relaciones conceptuales en 2D con física de fuerzas (D3.js Force Simulation).
+  - Filtro por materia, agrupación por clusters independientes y navegación fluida a 60 FPS.
 
 - ⏱️ **Temporizador Pomodoro con Widget Flotante**:
   - Presets preconfigurados: **Sesión Profunda** (1h $\times$ 10m) y **Sprint Rápido** (30m $\times$ 5m).
@@ -85,8 +115,9 @@ Tauri combina **la velocidad y el bajísimo consumo de Rust** en el backend con 
   - **Mini-widget flotante** en la esquina inferior derecha para no perder de vista el tiempo al navegar apuntes.
   - **Aviso sonoro suave (Chime)** generado mediante Web Audio API al llegar a `0:00` con botón de prueba en cabecera.
 
-- 🧮 **Calculadora Matricial Integrada**:
-  - Acceso directo dentro de la sección de Álgebra: suma, producto, determinantes, matrices transpuestas e inversas (hasta 5x5).
+- 📅 **Agenda TO-DO Académica**:
+  - Registro de Parciales, Finales, Tareas y Trabajos Prácticos.
+  - Selector de fechas límite, etiquetas de prioridad cromáticas (alta, media, baja) y persistencia local.
 
 - 🔍 **Buscador Instantáneo (Command Palette)**:
   - Accesible con `Ctrl + K` con búsqueda difusa (Fuse.js) sobre temas, fórmulas y apuntes personales.
@@ -111,7 +142,7 @@ LibreMath está optimizada para ejecutarse fluidamente en hardware modesto. Se r
 | **Software Adicional** | **Microsoft Edge WebView2 Runtime** *(incluido de fábrica en Windows 10/11)* | WebView2 Evergreen Runtime actualizado |
 
 > 💡 **Nota sobre el instalador de Windows (NSIS / MSI):**  
-> Gracias a Tauri, el instalador pesa menos de **10 MB**. Si la máquina del usuario tuviese una versión desactualizada de Windows 10 sin WebView2, el instalador puede descargarlo automáticamente de los servidores de Microsoft de manera desatendida.
+> Gracias a Tauri, el instalador pesa tan solo **~3.6 MB**. Si la máquina del usuario tuviese una versión desactualizada de Windows 10 sin WebView2, el instalador puede descargarlo automáticamente de los servidores de Microsoft de manera desatendida.
 
 ---
 
@@ -130,17 +161,23 @@ npm run dev
 ```
 Abre tu navegador en `http://localhost:5173`.
 
-### 3. Ejecutar en Modo Escritorio Nativo (Tauri + Rust)
+### 3. Ejecutar Pruebas Matemáticas Automatizadas
+```bash
+npm run test:calculus
+```
+Ejecuta la suite de verificación con casos de examen final UTN.
+
+### 4. Ejecutar en Modo Escritorio Nativo (Tauri + Rust)
 ```bash
 npm run desktop:dev
 ```
-Inicia la ventana nativa de escritorio con Hot Module Replacement (HMR) tanto para el frontend como para los módulos nativos de Rust.
+Inicia la ventana nativa de escritorio con Hot Module Replacement (HMR).
 
-### 4. Compilar el Instalador de Producción (.exe / .msi)
+### 5. Compilar el Instalador de Producción (.exe / .msi)
 ```bash
 npm run desktop:build
 ```
-Genera los instaladores optimizados de alta compresión en la carpeta `src-tauri/target/release/bundle/`.
+Genera los instaladores optimizados de alta compresión en `src-tauri/target/release/bundle/nsis/` y `src-tauri/target/release/bundle/msi/`.
 
 ---
 
@@ -160,23 +197,28 @@ LibreMath/
 │   ├── probabilidad-estadistica/ # Probabilidad y Estadística
 │   ├── economia/                 # Economía
 │   └── analisis-numerico/        # Análisis Numérico
+├── tests/                        # Suite de validación matemática
+│   └── utnExamValidation.ts      # Validación con problemas de exámenes UTN
 ├── src/                          # Frontend React 19 + TypeScript + Tailwind CSS
 │   ├── components/               # Componentes de interfaz
-│   │   ├── calculators/          # Calculadora matricial y evaluador de fórmulas
+│   │   ├── calculators/          # Calculadora analítica de cálculo (AM1/AM2) y matricial
+│   │   ├── AboutView.tsx         # Vista informativa y créditos
+│   │   ├── SettingsModal.tsx     # Configuración de usuario y saludo
+│   │   ├── WelcomeBanner.tsx     # Saludo animado de inicio
 │   │   ├── FloatingPomodoroWidget.tsx # Widget flotante de Pomodoro
 │   │   ├── GraphView.tsx         # Grafo interactivo D3.js
 │   │   ├── NewFolderModal.tsx    # Modal de creación de carpetas/materias
 │   │   ├── NewNoteModal.tsx      # Modal de creación de notas
 │   │   ├── NoteEditor.tsx        # Editor Markdown CodeMirror 6
 │   │   ├── PomodoroView.tsx      # Vista completa de temporizador Pomodoro
-│   │   └── Sidebar.tsx           # Barra lateral con navegación, TO-DO y materias
-│   ├── hooks/                    # Hooks personalizados (usePomodoro, useTodos, etc.)
-│   ├── services/                 # Servicios de carga, almacenamiento local y búsqueda
-│   │   ├── customModuleStorage.ts # Gestión y persistencia de carpetas/materias de usuario
-│   │   ├── moduleLoader.ts       # Carga reactiva de módulos y notas
-│   │   └── storage.ts            # Persistencia de notas y configuraciones
-│   ├── types/                    # Definiciones TypeScript (módulos, notas, pomodoro)
-│   └── utils/                    # Utilidades de sonido (Web Audio chime) y formateo
+│   │   └── Sidebar.tsx           # Barra lateral con navegación y materias
+│   ├── hooks/                    # Hooks personalizados (usePomodoro, useTodos)
+│   ├── services/                 # Servicios de cálculo, exportación y persistencia
+│   │   ├── desktopBridge.ts      # Puente con APIs de escritorio
+│   │   ├── pdfExporter.ts        # Exportación de notas a PDF
+│   │   └── markdownParser.ts     # Parser y renderizador de Markdown matemático
+│   ├── types/                    # Tipos TypeScript (calculus, modules, pomodoro)
+│   └── utils/                    # Utilidades de audio, matrices y formateo
 ├── src-tauri/                    # Backend nativo de escritorio en Rust (Tauri v2)
 │   ├── src/lib.rs                # Comandos Rust nativos
 │   ├── Cargo.toml                # Dependencias de Rust
