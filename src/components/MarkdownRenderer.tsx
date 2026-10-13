@@ -28,7 +28,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   return (
     <div
       onClick={handleClick}
-      className="obsidian-markdown-view prose-engineering space-y-4 text-slate-300 leading-relaxed text-[15px]"
+      className="obsidian-markdown-view prose-engineering space-y-4 text-zinc-300 leading-relaxed text-[15px]"
       dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );

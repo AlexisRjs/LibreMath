@@ -1,11 +1,12 @@
 import { TodoItem } from '../types/todo';
 
-const STORAGE_KEY = 'ingedata_todos';
+const STORAGE_KEY = 'libremath_todos';
+const LEGACY_STORAGE_KEY = 'ingedata_todos';
 
 export function getStoredTodos(): TodoItem[] {
   if (typeof window === 'undefined' || !window.localStorage) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) {
       return [];
     }

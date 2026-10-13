@@ -9,12 +9,156 @@ export interface PdfExportOptions {
   isUserNote?: boolean;
 }
 
+function normalizeString(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractMeaningfulWords(str: string): string[] {
+  const stopWords = new Set([
+    'de', 'del', 'la', 'las', 'el', 'los', 'en', 'un', 'una', 'unos', 'unas',
+    'y', 'e', 'o', 'u', 'a', 'para', 'por', 'con', 'sin', 'sobre', 'al', 'se',
+    'que', 'su', 'sus', 'como', 'unidad'
+  ]);
+  return normalizeString(str)
+    .split(' ')
+    .filter(word => word.length > 2 && !stopWords.has(word));
+}
+
+export function isRedundantText(candidate: string, title: string, unit?: string): boolean {
+  if (!candidate || !title) return false;
+
+  const normCandidate = normalizeString(candidate);
+  const normTitle = normalizeString(title);
+  const normUnit = unit ? normalizeString(unit) : '';
+
+  if (!normCandidate) return false;
+
+  // Direct equality
+  if (normCandidate === normTitle || (normUnit && normCandidate === normUnit)) {
+    return true;
+  }
+
+  // Substring inclusion
+  if (normTitle.includes(normCandidate) || normCandidate.includes(normTitle)) {
+    return true;
+  }
+  if (normUnit && (normUnit.includes(normCandidate) || normCandidate.includes(normUnit))) {
+    return true;
+  }
+
+  // Word overlap ratio
+  const candidateWords = extractMeaningfulWords(candidate);
+  if (candidateWords.length === 0) return false;
+
+  const titleWords = new Set(extractMeaningfulWords(title));
+  const overlapTitleCount = candidateWords.filter(w => titleWords.has(w)).length;
+  if (overlapTitleCount / candidateWords.length >= 0.45) {
+    return true;
+  }
+
+  if (normUnit && unit) {
+    const unitWords = new Set(extractMeaningfulWords(unit));
+    const overlapUnitCount = candidateWords.filter(w => unitWords.has(w)).length;
+    if (overlapUnitCount / candidateWords.length >= 0.45) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function formatUnitTag(unit: string | undefined, title: string, isUserNote: boolean): string | null {
+  if (isUserNote || !unit) {
+    return null;
+  }
+
+  const trimmedUnit = unit.trim();
+  if (
+    !trimmedUnit ||
+    trimmedUnit.toLowerCase() === 'apuntes y anotaciones' ||
+    trimmedUnit.toLowerCase() === 'general' ||
+    trimmedUnit.toLowerCase() === 'mis notas'
+  ) {
+    return null;
+  }
+
+  // Check if unit starts with "Unidad X" or "UX"
+  const unitMatch = trimmedUnit.match(/^((?:Unidad\s+\d+|U\d+))(?:\s*[:\-–]\s*(.*))?$/i);
+  if (unitMatch) {
+    const unitPrefix = unitMatch[1].trim(); // e.g. "Unidad 4" or "U6"
+    const unitRest = (unitMatch[2] || '').trim();
+
+    if (!unitRest) {
+      return unitPrefix;
+    }
+
+    // If the unit remainder repeats or overlaps with the title, show only the unit prefix
+    if (isRedundantText(unitRest, title)) {
+      return unitPrefix;
+    }
+
+    return `${unitPrefix}: ${unitRest}`;
+  }
+
+  // If no "Unidad X" prefix, omit if redundant with title
+  if (isRedundantText(trimmedUnit, title)) {
+    return null;
+  }
+
+  return trimmedUnit;
+}
+
+export function cleanMarkdownLeadingTitle(markdown: string, title: string, unit?: string): string {
+  if (!markdown) return '';
+
+  // Matches leading # Heading or ## Heading
+  const headingRegex = /^\s*(#{1,2})\s+([^\r\n]+)\r?\n+/;
+  const match = markdown.match(headingRegex);
+
+  if (match) {
+    const headingLevel = match[1];
+    const headingText = match[2].trim();
+
+    // Top-level document # heading or redundant heading is stripped so title is not repeated
+    if (headingLevel === '#' || isRedundantText(headingText, title, unit)) {
+      let stripped = markdown.slice(match[0].length);
+      // Remove any immediate divider line '---' right below the stripped title
+      stripped = stripped.replace(/^\s*---+\s*\r?\n+/, '');
+      return stripped;
+    }
+  }
+
+  return markdown;
+}
+
 export async function exportTopicToPdf(options: PdfExportOptions): Promise<void> {
   const { title, unit = 'Apuntes y Anotaciones', moduleName = 'LibreMath', markdownContent, isUserNote = false } = options;
   const showFooter = !isUserNote;
 
+  // Clean leading heading from markdown so it is not duplicated in the PDF body
+  const cleanedMarkdown = cleanMarkdownLeadingTitle(markdownContent, title, unit);
+
   // 1. Render Markdown with KaTeX math to HTML
-  const bodyHtml = renderObsidianMarkdown(markdownContent);
+  let bodyHtml = renderObsidianMarkdown(cleanedMarkdown);
+
+  // Fallback safety on bodyHtml: if bodyHtml still starts with an <h1>, strip it if redundant or empty
+  bodyHtml = bodyHtml.replace(/^\s*<h1[^>]*>([\s\S]*?)<\/h1>\s*(?:<hr[^>]*>\s*)?/i, (fullMatch, innerText) => {
+    const plainText = innerText.replace(/<[^>]+>/g, '').trim();
+    if (!plainText || isRedundantText(plainText, title, unit)) {
+      return '';
+    }
+    return fullMatch;
+  });
+
+  const formattedUnit = formatUnitTag(unit, title, isUserNote);
+  const unitHtml = formattedUnit ? `<p class="unit-tag">${formattedUnit}</p>` : '';
+
   const dateStr = new Date().toLocaleDateString('es-AR', {
     day: '2-digit',
     month: 'long',
@@ -322,7 +466,7 @@ export async function exportTopicToPdf(options: PdfExportOptions): Promise<void>
               <span>${dateStr}</span>
             </div>
             <h1 class="title">${title}</h1>
-            <p class="unit-tag">${unit}</p>
+            ${unitHtml}
           </div>
 
           <div class="content">

@@ -32,7 +32,7 @@ interface UnitTab {
   id: CalculusCategory;
   name: string;
   badge: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   description: string;
 }
 
@@ -46,49 +46,49 @@ const UNIT_TABS: UnitTab[] = [
   },
   {
     id: 'u1_vector_functions',
-    name: 'U1: Func. Vectoriales',
+    name: 'AM2: Func. Vectoriales',
     badge: 'r(t)',
     icon: Compass,
     description: 'Curvas espaciales, velocidad, vector tangente unitario T(t) y curvatura',
   },
   {
     id: 'u2_u3_multivariable',
-    name: 'U2-U3: Derivadas Parciales',
+    name: 'AM2: Derivadas Parciales',
     badge: '∇f & Plano Tg',
     icon: Boxes,
     description: 'Derivadas parciales, Teorema de Schwarz, Gradiente, Derivada Direccional y Plano Tangente',
   },
   {
     id: 'u4_extrema',
-    name: 'U4: Extremos y Hessiana',
+    name: 'AM2: Extremos y Hessiana',
     badge: 'H(x, y)',
     icon: Maximize2,
     description: 'Puntos críticos, Matriz Hessiana, Discriminante D, Clasificación y Multiplicadores de Lagrange',
   },
   {
     id: 'u5_multiple_integrals',
-    name: 'U5: Integrales Múltiples',
+    name: 'AM2: Integrales Múltiples',
     badge: '∬ dx dy',
     icon: Grid3X3,
     description: 'Integrales dobles iteradas por Fubini y cambio a coordenadas polares',
   },
   {
     id: 'u6_line_integrals',
-    name: 'U6: Integrales de Línea',
+    name: 'AM2: Integrales de Línea',
     badge: '∮ F·dr',
     icon: GitCommit,
     description: 'Campos conservativos, función potencial phi, Teorema de Green y trabajo',
   },
   {
     id: 'u7_surface_integrals',
-    name: 'U7: Integrales de Superficie',
+    name: 'AM2: Integrales de Superficie',
     badge: 'Gauss & Stokes',
     icon: Globe2,
     description: 'Flujo, Divergencia (Teorema de Gauss) y Rotacional (Teorema de Stokes)',
   },
   {
     id: 'u8_differential_equations',
-    name: 'U8: Ecuaciones Diferenciales',
+    name: 'AM2: Ecuaciones Diferenciales',
     badge: 'EDO',
     icon: Binary,
     description: 'Lineales de 1er orden por factor integrante, variables separables y 2do orden homogéneas',
@@ -291,11 +291,8 @@ export const CalculusCalculator: React.FC = () => {
             <Calculator className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 className="text-xl font-bold text-white tracking-tight">
               Calculadora de Análisis Matemático
-              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-[#7c3aed]/20 text-[#c4b5fd] border border-[#7c3aed]/30">
-                U1 a U8 Paso a Paso
-              </span>
             </h1>
             <p className="text-xs text-zinc-400 mt-0.5">
               Resolución analítica detallada indicando qué regla aplicar, desarrollo paso a paso y resultado final.
@@ -304,19 +301,20 @@ export const CalculusCalculator: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Unit Selection Tabs (U1 through U8) */}
+      {/* 2. Unit Selection Tabs (AM1 & AM2) */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
             <Layers className="w-3.5 h-3.5 text-[#a78bfa]" />
-            Selecciona la Unidad Temática:
+            <span>Materia y Tema:</span>
           </span>
-          <span className="text-[11px] text-zinc-400 font-mono">
+          <span className="text-[11px] text-zinc-400 font-mono hidden sm:inline truncate max-w-md">
             {activeTabMeta.badge} • {activeTabMeta.description}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5 p-1.5 bg-black rounded-2xl border border-zinc-800">
+        {/* Swipeable Tabs on Mobile, Clean Responsive Grid on Tablet/Desktop */}
+        <div className="flex sm:grid sm:grid-cols-4 lg:grid-cols-8 gap-1.5 p-1.5 bg-black rounded-2xl border border-zinc-800 overflow-x-auto no-scrollbar snap-x">
           {UNIT_TABS.map(tab => {
             const Icon = tab.icon;
             const isSelected = activeUnit === tab.id;
@@ -324,19 +322,34 @@ export const CalculusCalculator: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveUnit(tab.id)}
-                className={`p-2 rounded-xl text-left transition-all duration-150 flex flex-col justify-between gap-1 border cursor-pointer ${
+                className={`shrink-0 snap-start w-[140px] sm:w-auto p-2 rounded-xl text-left transition-all duration-150 flex flex-col justify-between gap-1 border cursor-pointer ${
                   isSelected
-                    ? 'bg-[#7c3aed]/20 border-[#7c3aed] text-white shadow-[0_0_12px_rgba(124,58,237,0.3)]'
+                    ? '!bg-[#7c3aed] !border-[#7c3aed] !text-white shadow-[0_0_12px_rgba(124,58,237,0.35)]'
                     : 'bg-zinc-950/60 border-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/80 hover:border-zinc-800'
                 }`}
               >
                 <div className="flex items-center justify-between w-full">
-                  <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
-                  <span className={`text-[9px] font-mono px-1 rounded ${isSelected ? 'bg-[#7c3aed]/40 text-purple-200' : 'bg-zinc-900 text-zinc-500'}`}>
+                  <Icon
+                    className={`w-3.5 h-3.5 ${isSelected ? '!text-white' : 'text-zinc-500'}`}
+                    style={isSelected ? { color: '#ffffff' } : undefined}
+                  />
+                  <span
+                    className={`text-[9px] font-mono px-1 rounded ${
+                      isSelected
+                        ? '!bg-purple-950 !text-white border border-purple-300/40'
+                        : 'bg-zinc-900 text-zinc-500'
+                    }`}
+                    style={isSelected ? { color: '#ffffff', backgroundColor: '#581c87' } : undefined}
+                  >
                     {tab.badge}
                   </span>
                 </div>
-                <div className="font-semibold text-[11px] leading-tight truncate">
+                <div
+                  className={`font-semibold text-[11px] leading-tight truncate ${
+                    isSelected ? '!text-white font-bold' : 'text-zinc-300'
+                  }`}
+                  style={isSelected ? { color: '#ffffff' } : undefined}
+                >
                   {tab.name}
                 </div>
               </button>
@@ -346,7 +359,7 @@ export const CalculusCalculator: React.FC = () => {
       </div>
 
       {/* 3. Dynamic Unit Input Panels */}
-      <div className="p-6 rounded-2xl bg-zinc-950/90 border border-zinc-800 shadow-xl space-y-5">
+      <div className="p-4 sm:p-6 rounded-2xl bg-zinc-950/90 border border-zinc-800 shadow-xl space-y-5">
         {/* AM1 Panel */}
         {activeUnit === 'am1' && (
           <div className="space-y-4">
@@ -976,7 +989,8 @@ export const CalculusCalculator: React.FC = () => {
       {result.success && (
         <div className="space-y-6 animate-fade-in">
           {/* Final Result Card */}
-          <div className="p-6 rounded-2xl bg-gradient-to-b from-[#130d24] to-black border border-[#7c3aed]/40 shadow-xl space-y-4">
+          {/* Big Result Card */}
+          <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-[#130d24] to-black border border-[#7c3aed]/40 shadow-xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
@@ -1004,11 +1018,11 @@ export const CalculusCalculator: React.FC = () => {
             </div>
 
             {/* Rendered Math Equality */}
-            <div className="p-5 rounded-xl bg-black border border-zinc-800 text-center overflow-x-auto shadow-inner">
+            <div className="p-3.5 sm:p-5 rounded-xl bg-black border border-zinc-800 text-center overflow-x-auto max-w-full shadow-inner">
               <MathRenderer
                 math={result.finalResultLatex}
                 block={false}
-                className="text-lg md:text-xl font-semibold text-white tracking-wide"
+                className="text-base sm:text-xl font-semibold text-white tracking-wide"
               />
             </div>
 
@@ -1045,7 +1059,7 @@ export const CalculusCalculator: React.FC = () => {
               {result.steps.map(step => (
                 <div
                   key={step.stepNumber}
-                  className="p-5 rounded-2xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition-all space-y-3 relative overflow-hidden shadow-md"
+                  className="p-3.5 sm:p-5 rounded-2xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition-all space-y-3 relative overflow-hidden shadow-md"
                 >
                   {/* Step Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-900 pb-2.5">
@@ -1072,18 +1086,18 @@ export const CalculusCalculator: React.FC = () => {
                       <span className="text-[10px] font-medium text-purple-300 block uppercase tracking-wider">
                         Fórmula / Teorema aplicado:
                       </span>
-                      <div className="overflow-x-auto text-left">
+                      <div className="overflow-x-auto max-w-full text-left">
                         <MathRenderer math={step.ruleLatex} block={false} className="text-xs text-purple-200" />
                       </div>
                     </div>
                   )}
 
                   {/* Intermediate Mathematical Result */}
-                  <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-black/60 p-3 rounded-xl border border-zinc-900">
+                  <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-2.5 bg-black/60 p-2.5 sm:p-3 rounded-xl border border-zinc-900">
                     <div className="text-[11px] text-zinc-500 shrink-0 font-medium">
                       Desarrollo del paso:
                     </div>
-                    <div className="overflow-x-auto text-left md:text-right">
+                    <div className="overflow-x-auto max-w-full text-left md:text-right">
                       {step.resultLatex ? (
                         <MathRenderer
                           math={`${step.expressionLatex} \\implies ${step.resultLatex}`}

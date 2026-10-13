@@ -4,7 +4,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Topic } from '../types/modules';
 import { saveTopicFile } from '../services/electronBridge';
-import { Save, Check, Code, Sparkles } from 'lucide-react';
+import { Save, Check, Code } from 'lucide-react';
 
 interface NoteEditorProps {
   topic: Topic;
@@ -99,7 +99,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
             [!NOTE]
           </button>
           <button
-            onClick={() => handleInsertSnippet('> [!TIP]\n> Consejo práctico o regla mnemotécnica')}
+            onClick={() => handleInsertSnippet('> [!TIP]\n> Método práctico o propiedad clave')}
             className="px-2.5 py-1 rounded-md bg-[#0e0e12] hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 transition-colors text-xs font-mono cursor-pointer"
             title="Insertar Callout TIP"
           >
@@ -163,8 +163,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
           <span>{code.length} caracteres</span>
         </div>
         <div className="flex items-center gap-2">
-          <Sparkles className="w-3 h-3 text-[#a78bfa]" />
-          <span>IngeData Markdown Engine</span>
+          <Code className="w-3 h-3 text-[#a78bfa]" />
+          <span>LibreMath Markdown Engine</span>
         </div>
       </div>
     </div>

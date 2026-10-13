@@ -19,11 +19,16 @@
   --accent-purple: #7c3aed;
   --accent-purple-hover: #8b5cf6;
   --accent-purple-subtle: rgba(124, 58, 237, 0.12);
+  color-scheme: dark;
 }
 
 @layer base {
   * {
     border-color: var(--border-color);
+  }
+  *:focus-visible {
+    outline: 2px solid #7c3aed;
+    outline-offset: 1px;
   }
   body {
     background-color: var(--bg-primary);
@@ -32,8 +37,24 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     user-select: text;
+    caret-color: #7c3aed;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  ::selection {
+    background-color: #7c3aed;
+    color: #ffffff;
   }
 }
+
+/* Tabular figures for dates, timers, counters and matrices */
+.font-mono,
+.tabular-nums,
+table,
+.katex {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+
 
 /* Modern Minimalist Flat Scrollbars */
 ::-webkit-scrollbar {
@@ -51,16 +72,28 @@
   background: #7c3aed;
 }
 
+/* Hide scrollbars when desired for clean mobile swiping */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* KaTeX Clean Minimalist styling - Standard comfortable formula size */
 .katex {
   font-size: 1.05em;
   text-rendering: geometricPrecision;
+  max-width: 100%;
 }
 
 .katex-display {
-  margin: 1rem 0 !important;
+  margin: 0.75rem 0 !important;
+  max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   padding: 0.25rem 0;
   text-align: center;
 }
@@ -78,6 +111,10 @@ table .katex .mfrac,
 .inline-katex {
   display: inline-block;
   vertical-align: -0.1em;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .prose-obsidian table {

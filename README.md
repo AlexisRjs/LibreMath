@@ -1,7 +1,9 @@
-# 📐 IngeData (LibreMath)
+# 📐 LibreMath
 
 > **La navaja suiza del estudiante de ingeniería.**  
 > Diseñada en base al programa y cursado de ingeniería (UTN Rosario), optimizada para ser ultra rápida, ligera y accesible para cualquier estudiante, incluso en computadoras de recursos moderados.
+> 
+> **Creador:** Alexis Fernando Rojas — Estudiante de Ingeniería en Sistemas de Información (UTN FRRo) • UPL
 
 ---
 
@@ -9,7 +11,7 @@
 
 Al diseñar una aplicación de escritorio técnica que acompañe a los estudiantes durante sus horas de estudio, el rendimiento y el consumo de memoria son factores críticos. Muchos estudiantes universitarios utilizan laptops con especificaciones modestas (procesadores Intel Celeron / Core i3 de generaciones anteriores, 4 GB de RAM y discos mecánicos HDD).
 
-Evaluamos detenidamente **cuatro alternativas tecnológicas** antes de consolidar la arquitectura de IngeData:
+Evaluamos detenidamente **cuatro alternativas tecnológicas** antes de consolidar la arquitectura de LibreMath:
 
 ### 📊 Matriz Comparativa
 
@@ -32,7 +34,7 @@ Evaluamos detenidamente **cuatro alternativas tecnológicas** antes de consolida
 * En un equipo con 4 GB de RAM, donde Windows ya consume más de 2.5 GB, una app en Electron compitiendo con un lector de PDFs y un navegador web empuja al sistema a utilizar memoria virtual (swap en disco), provocando congelamientos y lentitud extrema.
 
 #### 2. ¿Por qué descartamos Flet (Python + Flutter)?
-* **Limitación en renderizado matemático**: IngeData requiere renderizar expresiones matemáticas avanzadas (integrales múltiples, tensores, matrices de derivadas, ecuaciones diferenciales). Las librerías actuales en Flutter (`flutter_math`) carecen de la madurez y fidelidad tipográfica de KaTeX.
+* **Limitación en renderizado matemático**: LibreMath requiere renderizar expresiones matemáticas avanzadas (integrales múltiples, tensores, matrices de derivadas, ecuaciones diferenciales). Las librerías actuales en Flutter (`flutter_math`) carecen de la madurez y fidelidad tipográfica de KaTeX.
 * **Arranque en frío**: Desempaquetar y arrancar el intérprete de Python desde un ejecutable congelado en discos mecánicos (HDD) suele ser notablemente lento.
 * **Falta de ecosistema para grafos interactivos**: Replicar la física de nodos de D3.js en Flutter demandaría un esfuerzo desproporcionado.
 
@@ -96,7 +98,7 @@ Tauri combina **la velocidad y el bajísimo consumo de Rust** en el backend con 
 
 ## 🖥️ Requisitos del Sistema para el Instalador
 
-IngeData está optimizada para ejecutarse fluidamente en hardware modesto. Se recomiendan los siguientes parámetros para el instalador y entorno de ejecución:
+LibreMath está optimizada para ejecutarse fluidamente en hardware modesto. Se recomiendan los siguientes parámetros para el instalador y entorno de ejecución:
 
 | Requisito | Mínimo | Recomendado |
 | :--- | :--- | :--- |
@@ -117,8 +119,8 @@ IngeData está optimizada para ejecutarse fluidamente en hardware modesto. Se re
 
 ### 1. Clonar el Repositorio e Instalar Dependencias
 ```bash
-git clone https://github.com/usuario/ingedata-app.git
-cd "IngeData APP"
+git clone https://github.com/AlexisRjs/LibreMath.git
+cd LibreMath
 npm install
 ```
 
@@ -145,7 +147,7 @@ Genera los instaladores optimizados de alta compresión en la carpeta `src-tauri
 ## 📂 Estructura del Proyecto
 
 ```text
-IngeData APP/
+LibreMath/
 ├── modules/                      # Base de apuntes estructurada en Markdown + YAML
 │   ├── algebra/                  # Álgebra y Geometría Analítica
 │   ├── am1/                      # Análisis Matemático I

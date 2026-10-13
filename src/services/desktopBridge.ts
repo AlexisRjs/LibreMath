@@ -108,7 +108,7 @@ export async function createTopicFile(
     initialContent,
   } = params;
 
-  const defaultBody = initialContent ?? `# ${title}\n\nEscribe tus notas, fórmulas matemáticas en LaTeX ($...$ o $$...$$) y callouts aquí.\n\n> [!NOTE]\n> Apuntes personales para ${title}.\n`;
+  const defaultBody = initialContent ?? '';
 
   const yamlTags = tags.map(t => `"${t.trim()}"`).filter(Boolean).join(', ');
   const folderField = folder?.trim() ? `folder: "${folder.trim().replace(/"/g, '\\"')}"\n` : '';

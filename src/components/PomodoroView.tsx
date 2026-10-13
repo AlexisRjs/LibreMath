@@ -9,7 +9,7 @@ import {
   Brain,
   Sliders,
   CheckCircle2,
-  Sparkles,
+  Info,
   Flame,
   Zap,
   Bell,
@@ -82,11 +82,11 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
 
   return (
-    <div className="h-full overflow-y-auto bg-[#09090b] text-white p-6 sm:p-10 flex flex-col items-center justify-between font-sans select-none animate-view-fade">
+    <div className="h-full overflow-y-auto bg-[#09090b] text-white p-4 sm:p-10 flex flex-col items-center justify-between font-sans select-none animate-view-fade">
       {/* Top Header */}
-      <div className="w-full max-w-xl flex items-center justify-between pb-4 border-b border-zinc-800/80">
+      <div className="w-full max-w-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800/80">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-[#7c3aed]/15 border border-[#7c3aed]/40 flex items-center justify-center text-[#c084fc] shadow-lg shadow-purple-950/30">
+          <div className="w-9 h-9 rounded-xl bg-[#7c3aed]/15 border border-[#7c3aed]/40 flex items-center justify-center text-[#c084fc] shadow-lg shadow-purple-950/30 shrink-0">
             <Timer className="w-5 h-5" />
           </div>
           <div>
@@ -102,7 +102,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
           {onTestSound && (
             <button
               onClick={onTestSound}
@@ -111,12 +111,12 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-700/60 text-xs text-zinc-300 hover:text-white transition-all cursor-pointer active:scale-95 shadow-xs"
             >
               <Bell className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span className="hidden sm:inline text-[11px] font-medium">Probar sonido</span>
+              <span className="text-[11px] font-medium">Probar sonido</span>
             </button>
           )}
 
           {/* Sessions Streak Badge */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs shadow-xs">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs shadow-xs shrink-0">
             <Flame className="w-4 h-4 text-amber-400 fill-amber-400/20" />
             <span className="font-semibold text-zinc-200">{sessionsCompleted}</span>
             <span className="text-zinc-500 text-[11px]">sesiones</span>
@@ -257,20 +257,22 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({
             onClick={() => onSelectPreset('1h-10m')}
             className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden ${
               selectedPresetId === '1h-10m'
-                ? 'border-[#7c3aed] bg-[#7c3aed]/15 shadow-md shadow-purple-950/30'
+                ? 'border-[#7c3aed] bg-[#7c3aed] text-white shadow-md shadow-purple-950/30'
                 : 'border-zinc-800 bg-zinc-950/60 hover:bg-zinc-900/60 hover:border-zinc-700'
             }`}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-white">Sesión Profunda</span>
+              <span className={`text-xs font-bold ${selectedPresetId === '1h-10m' ? 'text-white' : 'text-zinc-200'}`}>
+                Sesión Profunda
+              </span>
               {selectedPresetId === '1h-10m' && (
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#c084fc]" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-purple-200" />
               )}
             </div>
-            <div className="text-sm font-extrabold font-mono text-[#a78bfa]">
-              1h <span className="text-zinc-500 font-normal">x</span> 10m
+            <div className={`text-sm font-extrabold font-mono ${selectedPresetId === '1h-10m' ? 'text-white' : 'text-[#a78bfa]'}`}>
+              1h <span className={`font-normal ${selectedPresetId === '1h-10m' ? 'text-purple-200' : 'text-zinc-500'}`}>x</span> 10m
             </div>
-            <p className="text-[10px] text-zinc-400 mt-1">
+            <p className={`text-[10px] mt-1 ${selectedPresetId === '1h-10m' ? 'text-purple-100 font-medium' : 'text-zinc-400'}`}>
               60 min estudio • 10 min descanso
             </p>
           </button>
@@ -280,20 +282,22 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({
             onClick={() => onSelectPreset('30m-5m')}
             className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden ${
               selectedPresetId === '30m-5m'
-                ? 'border-[#7c3aed] bg-[#7c3aed]/15 shadow-md shadow-purple-950/30'
+                ? 'border-[#7c3aed] bg-[#7c3aed] text-white shadow-md shadow-purple-950/30'
                 : 'border-zinc-800 bg-zinc-950/60 hover:bg-zinc-900/60 hover:border-zinc-700'
             }`}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-white">Sprint Rápido</span>
+              <span className={`text-xs font-bold ${selectedPresetId === '30m-5m' ? 'text-white' : 'text-zinc-200'}`}>
+                Sprint Rápido
+              </span>
               {selectedPresetId === '30m-5m' && (
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#c084fc]" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-purple-200" />
               )}
             </div>
-            <div className="text-sm font-extrabold font-mono text-[#a78bfa]">
-              30m <span className="text-zinc-500 font-normal">x</span> 5m
+            <div className={`text-sm font-extrabold font-mono ${selectedPresetId === '30m-5m' ? 'text-white' : 'text-[#a78bfa]'}`}>
+              30m <span className={`font-normal ${selectedPresetId === '30m-5m' ? 'text-purple-200' : 'text-zinc-500'}`}>x</span> 5m
             </div>
-            <p className="text-[10px] text-zinc-400 mt-1">
+            <p className={`text-[10px] mt-1 ${selectedPresetId === '30m-5m' ? 'text-purple-100 font-medium' : 'text-zinc-400'}`}>
               30 min estudio • 5 min descanso
             </p>
           </button>
@@ -306,18 +310,18 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({
             }}
             className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden ${
               selectedPresetId === 'custom'
-                ? 'border-[#7c3aed] bg-[#7c3aed]/15 shadow-md shadow-purple-950/30'
+                ? 'border-[#7c3aed] bg-[#7c3aed] text-white shadow-md shadow-purple-950/30'
                 : 'border-zinc-800 bg-zinc-950/60 hover:bg-zinc-900/60 hover:border-zinc-700'
             }`}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-white">Personalizado</span>
-              <Sliders className="w-3.5 h-3.5 text-[#c084fc]" />
+              <span className={`text-xs font-bold ${selectedPresetId === 'custom' ? 'text-white' : 'text-zinc-200'}`}>Personalizado</span>
+              <Sliders className={`w-3.5 h-3.5 ${selectedPresetId === 'custom' ? 'text-purple-200' : 'text-[#c084fc]'}`} />
             </div>
-            <div className="text-sm font-extrabold font-mono text-[#a78bfa]">
-              {customStudyMinutes}m <span className="text-zinc-500 font-normal">x</span> {customBreakMinutes}m
+            <div className={`text-sm font-extrabold font-mono ${selectedPresetId === 'custom' ? 'text-white' : 'text-[#a78bfa]'}`}>
+              {customStudyMinutes}m <span className={`font-normal ${selectedPresetId === 'custom' ? 'text-purple-200' : 'text-zinc-500'}`}>x</span> {customBreakMinutes}m
             </div>
-            <p className="text-[10px] text-zinc-400 mt-1">
+            <p className={`text-[10px] mt-1 ${selectedPresetId === 'custom' ? 'text-purple-100 font-medium' : 'text-zinc-400'}`}>
               {selectedPresetId === 'custom' ? 'Activo • Clic para reajustar' : 'Último guardado • Clic para usar'}
             </p>
           </button>
@@ -378,10 +382,10 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({
       {/* Footer Pro-Tip */}
       <div className="w-full max-w-xl mt-6 pt-3 border-t border-zinc-800/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-500">
         <span className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
+          <Info className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
           <span>Suena un suave chime al llegar a 0:00 y sigue flotando al navegar tus notas</span>
         </span>
-        <span className="font-mono text-zinc-600">LibreMath • IngeData Focus</span>
+        <span className="font-mono text-zinc-600">LibreMath • Focus</span>
       </div>
     </div>
   );

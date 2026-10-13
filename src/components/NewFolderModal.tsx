@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FolderPlus, Palette, BookOpen } from 'lucide-react';
+import { X, FolderPlus, Palette, BookOpen, AlertCircle } from 'lucide-react';
 
 interface NewFolderModalProps {
   isOpen: boolean;
@@ -84,7 +84,7 @@ export const NewFolderModal: React.FC<NewFolderModalProps> = ({
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
             <div className="p-2.5 rounded-lg bg-rose-950/60 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
-              <span>⚠️</span>
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
           )}

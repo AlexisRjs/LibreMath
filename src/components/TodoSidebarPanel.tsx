@@ -9,7 +9,7 @@ import {
   CheckSquare,
   X,
   Clock,
-  Sparkles,
+  PlusCircle,
   BookOpen,
 } from 'lucide-react';
 
@@ -239,7 +239,7 @@ export const TodoSidebarPanel: React.FC<TodoSidebarPanelProps> = ({
           >
             <div className="flex items-center justify-between pb-1 border-b border-zinc-800">
               <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3 text-[#a78bfa]" />
+                <PlusCircle className="w-3 h-3 text-[#a78bfa]" />
                 Nueva Anotación
               </span>
               <button
@@ -482,7 +482,7 @@ export const TodoSidebarPanel: React.FC<TodoSidebarPanelProps> = ({
 
       {/* Footer Info */}
       <div className="p-2 border-t border-zinc-800 text-[10px] text-zinc-500 font-mono flex items-center justify-between bg-black">
-        <span>IngeData Agenda</span>
+        <span>LibreMath Agenda</span>
         <span className="text-[#a78bfa]">
           {todos.filter(t => t.completed).length}/{todos.length} listas
         </span>

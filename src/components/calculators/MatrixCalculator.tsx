@@ -106,11 +106,8 @@ export const MatrixCalculator: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto w-full select-text">
         <div className="border-b border-zinc-800 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h2 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
-              <span>Calculadora de Matrices</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-[#7c3aed]/15 text-[#c084fc] border border-[#7c3aed]/30 font-mono font-medium">
-                2×2 a 5×5
-              </span>
+            <h2 className="text-xl font-extrabold tracking-tight text-white">
+              Calculadora de Matrices
             </h2>
             <p className="text-xs text-zinc-400 mt-1">
               Cálculo de determinante, matriz inversa, transpuesta y traza en tiempo real.
@@ -177,27 +174,29 @@ export const MatrixCalculator: React.FC = () => {
               <span className="text-[10px] text-zinc-500">Edita cualquier celda</span>
             </div>
 
-            <div
-              className="grid gap-2 mx-auto"
-              style={{
-                gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
-                maxWidth: size === 5 ? '380px' : size === 4 ? '320px' : '260px',
-              }}
-            >
-              {matrix.slice(0, size).map((row, rIdx) =>
-                row.slice(0, size).map((val, cIdx) => (
-                  <input
-                    key={`${rIdx}-${cIdx}`}
-                    type="number"
-                    step="any"
-                    value={val}
-                    onChange={e => handleCellChange(rIdx, cIdx, e.target.value)}
-                    className={`w-full text-center py-2 px-1 bg-black border border-zinc-800 focus:border-[#7c3aed] rounded-lg text-white font-mono font-semibold outline-none transition-colors ${
-                      size >= 4 ? 'text-xs' : 'text-sm'
-                    }`}
-                  />
-                ))
-              )}
+            <div className="overflow-x-auto max-w-full pb-2">
+              <div
+                className="grid gap-2 mx-auto min-w-[200px]"
+                style={{
+                  gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
+                  maxWidth: size === 5 ? '380px' : size === 4 ? '320px' : '260px',
+                }}
+              >
+                {matrix.slice(0, size).map((row, rIdx) =>
+                  row.slice(0, size).map((val, cIdx) => (
+                    <input
+                      key={`${rIdx}-${cIdx}`}
+                      type="number"
+                      step="any"
+                      value={val}
+                      onChange={e => handleCellChange(rIdx, cIdx, e.target.value)}
+                      className={`w-full text-center py-2 px-1 bg-black border border-zinc-800 focus:border-[#7c3aed] rounded-lg text-white font-mono font-semibold outline-none transition-colors ${
+                        size >= 4 ? 'text-xs' : 'text-sm'
+                      }`}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </div>
 

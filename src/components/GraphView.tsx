@@ -132,7 +132,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
         nList.push({
           id: folderNodeId,
-          label: `📁 ${fName}`,
+          label: fName,
           type: 'folder',
           moduleId: m.id,
           moduleName: m.name,

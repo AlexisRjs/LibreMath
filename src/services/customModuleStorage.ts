@@ -1,11 +1,12 @@
 import { ModuleManifest } from '../types/modules';
 
-const CUSTOM_MODULES_STORAGE_KEY = 'ingedata_custom_modules';
+const CUSTOM_MODULES_STORAGE_KEY = 'libremath_custom_modules';
+const LEGACY_CUSTOM_MODULES_STORAGE_KEY = 'ingedata_custom_modules';
 
 export function getStoredCustomModules(): ModuleManifest[] {
   if (typeof window === 'undefined' || !window.localStorage) return [];
   try {
-    const raw = localStorage.getItem(CUSTOM_MODULES_STORAGE_KEY);
+    const raw = localStorage.getItem(CUSTOM_MODULES_STORAGE_KEY) || localStorage.getItem(LEGACY_CUSTOM_MODULES_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ModuleManifest, UserFolder, Topic, TopicSummary } from '../types/modules';
-import { X, FilePlus, Sparkles, Folder, Tag, Layers, AlignLeft, FolderPlus } from 'lucide-react';
+import { X, FilePlus, Folder, Tag, Layers, AlignLeft, FolderPlus, AlertCircle } from 'lucide-react';
 
 interface NewNoteModalProps {
   isOpen: boolean;
@@ -185,7 +185,7 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
             <div className="p-2.5 rounded-lg bg-rose-950/60 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
-              <span>⚠️</span>
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -248,7 +248,7 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
                 <option value="">(Raíz de la materia / Sin carpeta)</option>
                 {computedAvailableFolders.map(f => (
                   <option key={f} value={f} className="bg-[#0e0e12]">
-                    📁 {f}
+                    {f}
                   </option>
                 ))}
               </select>
@@ -336,7 +336,7 @@ export const NewNoteModal: React.FC<NewNoteModalProps> = ({
               disabled={isSubmitting || !title.trim() || !slug.trim()}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#7c3aed] hover:bg-[#8b5cf6] text-white font-semibold shadow-xs disabled:opacity-50 transition-all text-xs cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <FilePlus className="w-3.5 h-3.5" />
               <span>{isSubmitting ? 'Creando nota...' : 'Crear e Indexar Nota'}</span>
             </button>
           </div>

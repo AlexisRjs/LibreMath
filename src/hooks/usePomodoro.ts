@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { PomodoroMode, PomodoroPresetId } from '../types/pomodoro';
 import { playChimeSound, unlockAudioContext } from '../utils/sound';
 
-const STORAGE_KEY = 'ingedata_pomodoro_state';
-const CUSTOM_STORAGE_KEY = 'ingedata_pomodoro_custom_times';
+const STORAGE_KEY = 'libremath_pomodoro_state';
+const LEGACY_STORAGE_KEY = 'ingedata_pomodoro_state';
+const CUSTOM_STORAGE_KEY = 'libremath_pomodoro_custom_times';
+const LEGACY_CUSTOM_STORAGE_KEY = 'ingedata_pomodoro_custom_times';
 
 export function usePomodoro() {
   const [mode, setMode] = useState<PomodoroMode>('study');
@@ -12,7 +14,7 @@ export function usePomodoro() {
   // Dedicated persistent custom times (remembered forever across sessions and presets)
   const [customStudyMinutes, setCustomStudyMinutes] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem(CUSTOM_STORAGE_KEY);
+      const saved = localStorage.getItem(CUSTOM_STORAGE_KEY) || localStorage.getItem(LEGACY_CUSTOM_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.study) return parsed.study;
@@ -25,7 +27,7 @@ export function usePomodoro() {
 
   const [customBreakMinutes, setCustomBreakMinutes] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem(CUSTOM_STORAGE_KEY);
+      const saved = localStorage.getItem(CUSTOM_STORAGE_KEY) || localStorage.getItem(LEGACY_CUSTOM_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.break) return parsed.break;
@@ -47,7 +49,7 @@ export function usePomodoro() {
   // Initialize from localStorage if present
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed.studyDurationMinutes) setStudyDurationMinutes(parsed.studyDurationMinutes);

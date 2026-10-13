@@ -133,14 +133,14 @@ export const FormulaEvaluator: React.FC<FormulaBankProps> = ({
       </div>
 
       {/* 2. Main Workbench Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-5 max-w-7xl mx-auto w-full select-text">
-        {/* Module Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-black border border-zinc-800 text-xs">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 space-y-5 max-w-7xl mx-auto w-full select-text">
+        {/* Module Filter Pills (Swipeable on mobile) */}
+        <div className="flex overflow-x-auto no-scrollbar items-center gap-1.5 p-1 rounded-xl bg-black border border-zinc-800 text-xs">
           {moduleTabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setSelectedModule(tab.id)}
-              className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium ${
+              className={`shrink-0 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-medium cursor-pointer ${
                 selectedModule === tab.id
                   ? 'bg-white text-black font-semibold shadow-xs'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-900'

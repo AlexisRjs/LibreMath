@@ -8,7 +8,7 @@ import {
   FileText,
   Plus,
   Check,
-  Sparkles,
+  Loader2,
   Heading1,
   Heading2,
   Heading3,
@@ -26,6 +26,10 @@ import {
   FileDown,
   Copy,
   Edit3,
+  PanelLeftClose,
+  PanelLeft,
+  Download,
+  Upload,
 } from 'lucide-react';
 
 interface MyNotesCanvasProps {
@@ -68,10 +72,12 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
+  const [isNotesListOpen, setIsNotesListOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : true));
 
   const visualEditorRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Sync activeNote with changes to initialTopic or userNotes
   useEffect(() => {
@@ -174,12 +180,12 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
     }
   };
 
-  // Create a brand new note directly
+  // Create a brand new note directly (starts completely empty as requested)
   const handleCreateNewNote = async () => {
     const slug = `nota-${Date.now()}`;
     const targetModule = manifests[0]?.id || 'algebra';
     const newTitle = 'Nueva Nota';
-    const initialBody = `# ${newTitle}\n\nComienza a escribir directamente aquí...\n`;
+    const initialBody = '';
 
     const res = await createTopicFile({
       moduleId: targetModule,
@@ -191,6 +197,62 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
     if (res.success && res.topic) {
       setActiveNote(res.topic);
       onTopicCreated?.();
+    }
+  };
+
+  // Export note directly as a .md file
+  const handleExportMarkdown = () => {
+    if (!activeNote) return;
+    setIsOptionsMenuOpen(false);
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const sanitizedTitle = (noteTitle || 'nota')
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-_áéíóúñ]/gi, '');
+    link.download = `${sanitizedTitle || 'nota'}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import a .md file as a new user note
+  const handleImportMarkdownClick = () => {
+    setIsOptionsMenuOpen(false);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImportChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const rawName = file.name.replace(/\.[^/.]+$/, '');
+      const slug = `nota-import-${Date.now()}`;
+      const targetModule = manifests[0]?.id || 'algebra';
+
+      const res = await createTopicFile({
+        moduleId: targetModule,
+        slug,
+        title: rawName || 'Nota Importada',
+        initialContent: text,
+      });
+
+      if (res.success && res.topic) {
+        setActiveNote(res.topic);
+        setNoteTitle(res.topic.title);
+        setContent(res.topic.content);
+        onTopicCreated?.();
+      }
+    } catch (err) {
+      console.error('Error importing markdown file:', err);
+    } finally {
+      e.target.value = '';
     }
   };
 
@@ -448,76 +510,126 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
   const lineCount = content.split('\n').length;
 
   return (
-    <div className="flex h-full w-full bg-[#09090b] text-white select-none overflow-hidden font-sans">
-      {/* 1. Left Drawer: Notes List */}
-      <aside className="w-56 h-full bg-black border-r border-zinc-800 flex flex-col shrink-0 select-none">
-        {/* Header */}
-        <div className="p-3 border-b border-zinc-800 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-white font-semibold text-xs">
-            <PenTool className="w-3.5 h-3.5 text-[#a78bfa]" />
-            <span>Mis Notas</span>
-          </div>
+    <div className="flex h-full w-full bg-[#09090b] text-white select-none overflow-hidden font-sans relative">
+      {/* Hidden File Input for .md Import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileImportChange}
+        accept=".md,.markdown,text/markdown,text/plain"
+        className="hidden"
+      />
 
-          <button
-            onClick={handleCreateNewNote}
-            className="px-2 py-1 rounded-md bg-[#7c3aed] hover:bg-[#8b5cf6] text-white font-semibold transition-colors text-xs flex items-center gap-1 shadow-xs"
-            title="Crear nueva nota en blanco"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="text-[10px]">Nueva</span>
-          </button>
-        </div>
+      {/* 1. Left Drawer: Notes List (Drawer Overlay on mobile, side column on desktop) */}
+      {isNotesListOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 sm:hidden"
+            onClick={() => setIsNotesListOpen(false)}
+          />
+          <aside className="fixed inset-y-0 left-0 z-40 w-72 sm:static sm:z-auto sm:w-56 h-full bg-black/95 sm:bg-black backdrop-blur-md sm:backdrop-blur-none border-r border-zinc-800 flex flex-col shrink-0 select-none transition-all duration-200 shadow-2xl sm:shadow-none">
+            {/* Header */}
+            <div className="p-2.5 border-b border-zinc-800 flex items-center justify-between gap-1">
+              <div className="flex items-center gap-1.5 text-white font-semibold text-xs min-w-0">
+                <PenTool className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
+                <span className="truncate">Mis Notas</span>
+              </div>
 
-        {/* Notes Items List */}
-        <div className="flex-1 overflow-y-auto p-1.5 space-y-1">
-          {userNotes.length === 0 ? (
-            <div className="p-4 text-center text-zinc-500 text-xs font-sans">
-              No tienes notas aún. Haz clic en &quot;Nueva&quot; para comenzar.
-            </div>
-          ) : (
-            userNotes.map(note => {
-              const isSelected = activeNote?.slug === note.slug;
-              return (
-                <div
-                  key={note.slug}
-                  className="flex items-center group/note rounded-md transition-colors pr-1"
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={handleImportMarkdownClick}
+                  className="p-1 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs flex items-center transition-colors cursor-pointer"
+                  title="Importar archivo Markdown (.md)"
                 >
-                  <button
-                    onClick={() => {
-                      setActiveNote(note);
-                      onTopicSelect?.(note);
-                    }}
-                    className={`flex-1 text-left p-2 rounded-md text-xs transition-all flex items-center gap-2 min-w-0 ${
-                      isSelected
-                        ? 'bg-[#7c3aed]/15 text-white font-semibold border-l-2 border-[#7c3aed]'
-                        : 'text-zinc-400 hover:bg-zinc-900/60 hover:text-white'
-                    }`}
-                  >
-                    <FileText className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-[#a78bfa]' : 'text-zinc-600'}`} />
-                    <span className="truncate flex-1">{note.title}</span>
-                  </button>
+                  <Upload className="w-3.5 h-3.5 text-[#a78bfa]" />
+                </button>
 
-                  <button
-                    onClick={(e) => handleDeleteNote(note, e)}
-                    className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-950/40 opacity-0 group-hover/note:opacity-100 transition-all shrink-0 ml-1"
-                    title="Eliminar esta nota definitivamente"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                <button
+                  onClick={() => {
+                    handleCreateNewNote();
+                    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+                      setIsNotesListOpen(false);
+                    }
+                  }}
+                  className="px-2 py-1 rounded-md bg-[#7c3aed] hover:bg-[#8b5cf6] text-white font-semibold transition-colors text-xs flex items-center gap-1 shadow-xs cursor-pointer"
+                  title="Crear nueva nota en blanco"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span className="text-[10px]">Nueva</span>
+                </button>
+
+                <button
+                  onClick={() => setIsNotesListOpen(false)}
+                  className="p-1 rounded-md hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  title="Ocultar barra de Mis Notas"
+                >
+                  <PanelLeftClose className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Notes Items List */}
+            <div className="flex-1 overflow-y-auto p-1.5 space-y-1">
+              {userNotes.length === 0 ? (
+                <div className="p-4 text-center text-zinc-500 text-xs font-sans">
+                  No tienes notas aún. Haz clic en &quot;Nueva&quot; para comenzar.
                 </div>
-              );
-            })
-          )}
-        </div>
+              ) : (
+                userNotes.map(note => {
+                  const isSelected = activeNote?.slug === note.slug;
+                  return (
+                    <div
+                      key={note.slug}
+                      className="flex items-center group/note rounded-md transition-colors pr-1"
+                    >
+                      <button
+                        onClick={() => {
+                          setActiveNote(note);
+                          onTopicSelect?.(note);
+                          if (typeof window !== 'undefined' && window.innerWidth < 640) {
+                            setIsNotesListOpen(false);
+                          }
+                        }}
+                        className={`flex-1 text-left p-2 rounded-md text-xs transition-all flex items-center gap-2 min-w-0 cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#7c3aed]/15 text-white font-semibold border-l-2 border-[#7c3aed]'
+                            : 'text-zinc-400 hover:bg-zinc-900/60 hover:text-white'
+                        }`}
+                      >
+                        <FileText className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-[#a78bfa]' : 'text-zinc-600'}`} />
+                        <span className="truncate flex-1">{note.title}</span>
+                      </button>
 
-        {/* Footer info */}
-        <div className="p-2 border-t border-zinc-800 text-[10px] text-zinc-500 text-center font-mono">
-          {userNotes.length} notas personales
-        </div>
-      </aside>
+                      <button
+                        onClick={(e) => handleDeleteNote(note, e)}
+                        className="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-950/40 opacity-0 group-hover/note:opacity-100 transition-all shrink-0 ml-1 cursor-pointer"
+                        title="Eliminar esta nota definitivamente"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer info */}
+            <div className="p-2 border-t border-zinc-800 text-[10px] text-zinc-500 flex items-center justify-between font-mono">
+              <span>{userNotes.length} notas</span>
+              <button
+                onClick={handleImportMarkdownClick}
+                className="text-[10px] text-[#a78bfa] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Upload className="w-2.5 h-2.5" />
+                <span>importar .md</span>
+              </button>
+            </div>
+          </aside>
+        </>
+      )}
 
       {/* 2. Main Writing Canvas Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#09090b]">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#09090b] min-w-0">
         {!activeNote ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#09090b]">
             <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 text-[#a78bfa] shadow-lg shadow-purple-950/20">
@@ -540,239 +652,261 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
         ) : (
           <>
             {/* Top Header Bar */}
-            <div className="px-6 py-2.5 bg-black border-b border-zinc-800 flex items-center justify-between shrink-0">
-          {/* Note Title Input Directly on Canvas */}
-          <div className="flex items-center gap-2 flex-1 min-w-0 mr-4">
-            <span className="text-[#a78bfa] text-sm font-mono font-bold">#</span>
-            <input
-              type="text"
-              value={noteTitle}
-              onChange={e => handleTitleChange(e.target.value)}
-              placeholder="Título del apunte..."
-              className="bg-transparent border-b border-transparent hover:border-zinc-700 focus:border-[#7c3aed] text-base sm:text-lg font-bold text-white outline-none w-full transition-colors select-text placeholder:text-zinc-600"
-            />
-          </div>
+            <div className="px-3 sm:px-6 py-2 bg-black border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
+              {/* Row 1: Note Title & Drawer Toggle */}
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <button
+                  onClick={() => setIsNotesListOpen(prev => !prev)}
+                  className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs shrink-0 cursor-pointer"
+                  title={isNotesListOpen ? "Ocultar lista de notas" : "Mostrar lista de notas"}
+                >
+                  <PanelLeft className="w-3.5 h-3.5 text-[#a78bfa]" />
+                  <span className="text-[11px] font-medium">Notas ({userNotes.length})</span>
+                </button>
+                <span className="text-[#a78bfa] text-sm font-mono font-bold">#</span>
+                <input
+                  type="text"
+                  value={noteTitle}
+                  onChange={e => handleTitleChange(e.target.value)}
+                  placeholder="Título del apunte..."
+                  className="bg-transparent border-b border-transparent hover:border-zinc-700 focus:border-[#7c3aed] text-sm sm:text-lg font-bold text-white outline-none flex-1 min-w-0 transition-colors select-text placeholder:text-zinc-600 truncate"
+                />
+              </div>
 
-          {/* Quick Controls & Status */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Editor Mode Selector: Visual WYSIWYG vs Raw Markdown */}
-            <div className="flex items-center bg-black border border-zinc-800 rounded-lg p-0.5 text-xs">
-              <button
-                onClick={() => handleSwitchMode('visual')}
-                className={`px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-all ${
-                  editorMode === 'visual'
-                    ? 'bg-white text-black font-semibold shadow-xs'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-                title="Modo visual en vivo (ves el formato aplicado sin símbolos markdown)"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span className="text-[11px]">Visual</span>
-              </button>
-              <button
-                onClick={() => handleSwitchMode('markdown')}
-                className={`px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-all ${
-                  editorMode === 'markdown'
-                    ? 'bg-white text-black font-semibold shadow-xs'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-                title="Modo código Markdown"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span className="text-[11px]">Markdown</span>
-              </button>
-            </div>
-
-            {/* Save Status Badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-mono">
-              {saveStatus === 'saved' ? (
-                <>
-                  <Check className="w-3 h-3 text-emerald-400" />
-                  <span className="text-emerald-400">Guardado</span>
-                </>
-              ) : saveStatus === 'saving' ? (
-                <>
-                  <Sparkles className="w-3 h-3 text-[#a78bfa] animate-spin" />
-                  <span className="text-[#a78bfa]">Guardando...</span>
-                </>
-              ) : (
-                <span className="text-amber-400">Sin guardar</span>
-              )}
-            </div>
-
-            {/* Split Preview Toggle */}
-            <button
-              onClick={() => setViewLayout(prev => (prev === 'canvas-only' ? 'split' : 'canvas-only'))}
-              className={`p-1.5 rounded-lg border transition-all flex items-center gap-1 text-xs ${
-                viewLayout === 'split'
-                  ? 'bg-[#7c3aed] border-[#7c3aed] text-white font-medium'
-                  : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
-              }`}
-              title={viewLayout === 'split' ? 'Ocultar vista previa dividida' : 'Ver pantalla dividida con vista previa'}
-            >
-              <Columns className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px]">Dividir</span>
-            </button>
-
-            {/* 3-Dots Options Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsOptionsMenuOpen(prev => !prev)}
-                className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white transition-colors"
-                title="Más opciones"
-              >
-                <MoreHorizontal className="w-3.5 h-3.5" />
-              </button>
-
-              {isOptionsMenuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-48 bg-[#0e0e12] border border-zinc-800 rounded-xl shadow-2xl shadow-black py-1 z-50 text-xs text-zinc-200 font-sans animate-in fade-in zoom-in-95 duration-100">
+              {/* Row 2 on mobile: Controls, Mode & Actions */}
+              <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-900">
+                {/* Editor Mode Selector: Visual WYSIWYG vs Raw Markdown */}
+                <div className="flex items-center bg-black border border-zinc-800 rounded-lg p-0.5 text-xs">
                   <button
-                    onClick={handleExportPdf}
-                    className="w-full px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-left transition-colors"
+                    onClick={() => handleSwitchMode('visual')}
+                    className={`px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
+                      editorMode === 'visual'
+                        ? 'bg-white text-black font-semibold shadow-xs'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                    title="Modo visual en vivo"
                   >
-                    <FileDown className="w-3.5 h-3.5 text-[#a78bfa]" />
-                    <span>Exportar como PDF</span>
+                    <Eye className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">Visual</span>
                   </button>
                   <button
-                    onClick={handleCopyMarkdown}
-                    className="w-full px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-left transition-colors"
+                    onClick={() => handleSwitchMode('markdown')}
+                    className={`px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
+                      editorMode === 'markdown'
+                        ? 'bg-white text-black font-semibold shadow-xs'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                    title="Modo código Markdown"
                   >
-                    {copiedMarkdown ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 text-zinc-400" />
-                    )}
-                    <span>{copiedMarkdown ? '¡Copiado!' : 'Copiar Markdown'}</span>
-                  </button>
-                  <div className="h-[1px] bg-zinc-800 my-1" />
-                  <button
-                    onClick={() => {
-                      setIsOptionsMenuOpen(false);
-                      handleDeleteNote(activeNote);
-                    }}
-                    className="w-full px-3 py-2 hover:bg-rose-950/60 flex items-center gap-2 text-left text-rose-400 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Eliminar nota</span>
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">Markdown</span>
                   </button>
                 </div>
-              )}
+
+                {/* Save Status Badge */}
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-mono shrink-0">
+                  {saveStatus === 'saved' ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-400" />
+                      <span className="text-emerald-400 text-[10px] sm:text-[11px]">Guardado</span>
+                    </>
+                  ) : saveStatus === 'saving' ? (
+                    <>
+                      <Loader2 className="w-3 h-3 text-[#a78bfa] animate-spin" />
+                      <span className="text-[#a78bfa] text-[10px] sm:text-[11px]">Guardando...</span>
+                    </>
+                  ) : (
+                    <span className="text-amber-400 text-[10px] sm:text-[11px]">Sin guardar</span>
+                  )}
+                </div>
+
+                {/* Split Preview Toggle (Desktop Only) */}
+                <button
+                  onClick={() => setViewLayout(prev => (prev === 'canvas-only' ? 'split' : 'canvas-only'))}
+                  className={`hidden sm:flex p-1.5 rounded-lg border transition-all items-center gap-1 text-xs cursor-pointer ${
+                    viewLayout === 'split'
+                      ? 'bg-[#7c3aed] border-[#7c3aed] text-white font-medium'
+                      : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
+                  }`}
+                  title={viewLayout === 'split' ? 'Ocultar vista previa dividida' : 'Ver pantalla dividida con vista previa'}
+                >
+                  <Columns className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">Dividir</span>
+                </button>
+
+                {/* 3-Dots Options Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsOptionsMenuOpen(prev => !prev)}
+                    className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                    title="Más opciones"
+                  >
+                    <MoreHorizontal className="w-3.5 h-3.5" />
+                  </button>
+
+                  {isOptionsMenuOpen && (
+                    <div className="absolute right-0 top-full mt-1.5 w-52 bg-[#0e0e12] border border-zinc-800 rounded-xl shadow-2xl shadow-black py-1 z-50 text-xs text-zinc-200 font-sans animate-in fade-in zoom-in-95 duration-100">
+                      <button
+                        onClick={handleExportPdf}
+                        className="w-full px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-left transition-colors cursor-pointer"
+                      >
+                        <FileDown className="w-3.5 h-3.5 text-[#a78bfa]" />
+                        <span>Exportar como PDF</span>
+                      </button>
+                      <button
+                        onClick={handleExportMarkdown}
+                        className="w-full px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-left transition-colors cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5 text-[#a78bfa]" />
+                        <span>Exportar como Markdown (.md)</span>
+                      </button>
+                      <button
+                        onClick={handleImportMarkdownClick}
+                        className="w-full px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-left transition-colors cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-[#a78bfa]" />
+                        <span>Importar archivo (.md)</span>
+                      </button>
+                      <button
+                        onClick={handleCopyMarkdown}
+                        className="w-full px-3 py-2 hover:bg-zinc-800/80 flex items-center gap-2 text-left transition-colors cursor-pointer"
+                      >
+                        {copiedMarkdown ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 text-zinc-400" />
+                        )}
+                        <span>{copiedMarkdown ? '¡Copiado!' : 'Copiar Markdown'}</span>
+                      </button>
+                      <div className="h-[1px] bg-zinc-800 my-1" />
+                      <button
+                        onClick={() => {
+                          setIsOptionsMenuOpen(false);
+                          handleDeleteNote(activeNote);
+                        }}
+                        className="w-full px-3 py-2 hover:bg-rose-950/60 flex items-center gap-2 text-left text-rose-400 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Eliminar nota</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Quick Format Ribbon */}
-        <div className="px-6 py-1.5 bg-[#0e0e12] border-b border-zinc-800 flex items-center gap-1 overflow-x-auto text-xs text-zinc-300">
-          <span className="text-[10px] font-mono text-zinc-500 mr-1 shrink-0">
-            {editorMode === 'visual' ? 'Formato:' : 'Markdown:'}
-          </span>
+            {/* Quick Format Ribbon */}
+            <div className="px-2 sm:px-6 py-1 bg-[#0e0e12] border-b border-zinc-800 flex items-center gap-1 overflow-x-auto no-scrollbar text-xs text-zinc-300 shrink-0">
+              <span className="text-[10px] font-mono text-zinc-500 mr-1 shrink-0 hidden sm:inline">
+                {editorMode === 'visual' ? 'Formato:' : 'Markdown:'}
+              </span>
 
-          <button
-            onClick={() => applyFormat('h1')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors"
-            title="Formatear como Título 1 (H1)"
-          >
-            <Heading1 className="w-3.5 h-3.5 text-[#a78bfa]" />
-            <span className="text-[11px]">T1</span>
-          </button>
-          <button
-            onClick={() => applyFormat('h2')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors"
-            title="Formatear como Título 2 (H2)"
-          >
-            <Heading2 className="w-3.5 h-3.5 text-[#a78bfa]" />
-            <span className="text-[11px]">T2</span>
-          </button>
-          <button
-            onClick={() => applyFormat('h3')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors"
-            title="Formatear como Título 3 (H3)"
-          >
-            <Heading3 className="w-3.5 h-3.5 text-[#a78bfa]" />
-            <span className="text-[11px]">T3</span>
-          </button>
+              <button
+                onClick={() => applyFormat('h1')}
+                className="px-2 py-1 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors cursor-pointer min-h-[30px]"
+                title="Título 1 (H1)"
+              >
+                <Heading1 className="w-3.5 h-3.5 text-[#a78bfa]" />
+                <span className="text-[11px]">T1</span>
+              </button>
+              <button
+                onClick={() => applyFormat('h2')}
+                className="px-2 py-1 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors cursor-pointer min-h-[30px]"
+                title="Título 2 (H2)"
+              >
+                <Heading2 className="w-3.5 h-3.5 text-[#a78bfa]" />
+                <span className="text-[11px]">T2</span>
+              </button>
+              <button
+                onClick={() => applyFormat('h3')}
+                className="px-2 py-1 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-medium transition-colors cursor-pointer min-h-[30px]"
+                title="Título 3 (H3)"
+              >
+                <Heading3 className="w-3.5 h-3.5 text-[#a78bfa]" />
+                <span className="text-[11px]">T3</span>
+              </button>
 
-          <span className="text-zinc-700 mx-1">|</span>
+              <span className="text-zinc-700 mx-0.5 sm:mx-1 shrink-0">|</span>
 
-          <button
-            onClick={() => applyFormat('bold')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-bold transition-colors"
-            title="Negrita (Ctrl+B)"
-          >
-            <Bold className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="text-[11px]">Negrita</span>
-          </button>
-          <button
-            onClick={() => applyFormat('italic')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 italic transition-colors"
-            title="Cursiva (Ctrl+I)"
-          >
-            <Italic className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="text-[11px]">Cursiva</span>
-          </button>
-          <button
-            onClick={() => applyFormat('underline')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors"
-            title="Subrayar texto (Ctrl+U)"
-          >
-            <Underline className="w-3.5 h-3.5 text-[#a78bfa]" />
-            <span className="text-[11px] underline">Subrayado</span>
-          </button>
-          <button
-            onClick={() => applyFormat('strike')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors"
-            title="Rayar / Tachar texto"
-          >
-            <Strikethrough className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="text-[11px] line-through">Rayado</span>
-          </button>
+              <button
+                onClick={() => applyFormat('bold')}
+                className="px-2 py-1 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 font-bold transition-colors cursor-pointer min-h-[30px]"
+                title="Negrita (Ctrl+B)"
+              >
+                <Bold className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="text-[11px]">Negrita</span>
+              </button>
+              <button
+                onClick={() => applyFormat('italic')}
+                className="px-2 py-1 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 italic transition-colors cursor-pointer min-h-[30px]"
+                title="Cursiva (Ctrl+I)"
+              >
+                <Italic className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="text-[11px]">Cursiva</span>
+              </button>
+              <button
+                onClick={() => applyFormat('underline')}
+                className="px-2 py-1 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors cursor-pointer min-h-[30px]"
+                title="Subrayar texto (Ctrl+U)"
+              >
+                <Underline className="w-3.5 h-3.5 text-[#a78bfa]" />
+                <span className="text-[11px] underline">Subrayado</span>
+              </button>
+              <button
+                onClick={() => applyFormat('strike')}
+                className="px-2 py-1 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors cursor-pointer min-h-[30px]"
+                title="Rayar / Tachar texto"
+              >
+                <Strikethrough className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="text-[11px] line-through">Rayado</span>
+              </button>
 
-          <span className="text-zinc-700 mx-1">|</span>
+              <span className="text-zinc-700 mx-0.5 sm:mx-1 shrink-0">|</span>
 
-          <button
-            onClick={() => applyFormat('math')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors"
-            title="Insertar bloque de fórmula matemática KaTeX"
-          >
-            <Sigma className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-[11px]">Fórmula</span>
-          </button>
-          <button
-            onClick={() => applyFormat('code')}
-            className="px-2 py-0.5 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors"
-            title="Bloque de código de programación"
-          >
-            <Code className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-[11px]">Código</span>
-          </button>
-        </div>
+              <button
+                onClick={() => applyFormat('math')}
+                className="px-2.5 py-1 rounded bg-[#7c3aed]/15 hover:bg-[#7c3aed]/25 text-purple-200 border border-[#7c3aed]/40 flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer min-h-[30px]"
+                title="Insertar bloque de fórmula matemática KaTeX"
+              >
+                <Sigma className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-[11px] font-medium">Fórmula</span>
+              </button>
+              <button
+                onClick={() => applyFormat('code')}
+                className="px-2 py-1 rounded hover:bg-zinc-800 hover:text-white flex items-center gap-1 shrink-0 transition-colors cursor-pointer min-h-[30px]"
+                title="Bloque de código de programación"
+              >
+                <Code className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-[11px]">Código</span>
+              </button>
+            </div>
 
-        {/* 3. The Pure Writing Canvas */}
-        <div className="flex-1 flex overflow-hidden relative">
-          {/* Main Writing Canvas (Visual WYSIWYG or Markdown) */}
-          <div className={`h-full flex flex-col ${viewLayout === 'split' ? 'w-1/2 border-r border-zinc-800' : 'w-full'}`}>
-            {editorMode === 'visual' ? (
-              <div
-                ref={visualEditorRef}
-                contentEditable
-                suppressContentEditableWarning
-                onInput={handleVisualInput}
-                onContextMenu={handleContextMenu}
-                data-placeholder="Escribe directamente aquí tus apuntes... (El formato se ve aplicado en tiempo real)"
-                className="visual-notes-editor flex-1 w-full h-full p-6 sm:p-8 bg-[#09090b] text-white outline-none overflow-y-auto leading-relaxed selection:bg-[#7c3aed]/40 select-text font-sans"
-              />
-            ) : (
-              <textarea
-                ref={textareaRef}
-                value={content}
-                onChange={e => handleMarkdownTextareaChange(e.target.value)}
-                onContextMenu={handleContextMenu}
-                autoFocus
-                placeholder="Escribe en formato Markdown aquí..."
-                className="flex-1 w-full h-full p-6 sm:p-8 bg-[#09090b] text-white font-mono text-sm leading-relaxed outline-none resize-none placeholder:text-zinc-600 selection:bg-[#7c3aed]/40 select-text"
-              />
-            )}
-          </div>
+            {/* 3. The Pure Writing Canvas */}
+            <div className="flex-1 flex overflow-hidden relative">
+              {/* Main Writing Canvas (Visual WYSIWYG or Markdown) */}
+              <div className={`h-full flex flex-col ${viewLayout === 'split' ? 'w-1/2 border-r border-zinc-800' : 'w-full'}`}>
+                {editorMode === 'visual' ? (
+                  <div
+                    ref={visualEditorRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    onInput={handleVisualInput}
+                    onContextMenu={handleContextMenu}
+                    data-placeholder="Escribe directamente aquí tus apuntes... (El formato se ve aplicado en tiempo real)"
+                    className="visual-notes-editor flex-1 w-full h-full p-4 sm:p-8 bg-[#09090b] text-white outline-none overflow-y-auto leading-relaxed selection:bg-[#7c3aed]/40 select-text font-sans text-sm sm:text-base"
+                  />
+                ) : (
+                  <textarea
+                    ref={textareaRef}
+                    value={content}
+                    onChange={e => handleMarkdownTextareaChange(e.target.value)}
+                    onContextMenu={handleContextMenu}
+                    autoFocus
+                    placeholder="Escribe en formato Markdown aquí..."
+                    className="flex-1 w-full h-full p-4 sm:p-8 bg-[#09090b] text-white font-mono text-sm leading-relaxed outline-none resize-none placeholder:text-zinc-600 selection:bg-[#7c3aed]/40 select-text"
+                  />
+                )}
+              </div>
 
           {/* Optional Split Live Preview Canvas */}
           {viewLayout === 'split' && (
@@ -909,8 +1043,8 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
           )}
         </div>
 
-        {/* Bottom Status Bar */}
-        <div className="h-6 px-6 bg-black border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+        {/* Bottom Status Bar (Hidden on mobile to maximize viewport and eliminate overlap with app footer) */}
+        <div className="hidden sm:flex h-6 px-6 bg-black border-t border-zinc-800 items-center justify-between text-[11px] text-zinc-400 font-mono shrink-0">
           <div className="flex items-center gap-4">
             <span>{lineCount} líneas</span>
             <span>{wordCount} palabras</span>
@@ -921,8 +1055,8 @@ export const MyNotesCanvas: React.FC<MyNotesCanvasProps> = ({
           </div>
 
           <div className="flex items-center gap-2 text-[#a78bfa]">
-            <Sparkles className="w-3 h-3" />
-            <span>Lienzo Activo IngeData</span>
+            <FileText className="w-3 h-3" />
+            <span>Lienzo Activo LibreMath</span>
           </div>
         </div>
         </>

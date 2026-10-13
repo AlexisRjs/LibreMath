@@ -27,6 +27,9 @@ import { GraphView } from './components/GraphView';
 import { MyNotesCanvas } from './components/MyNotesCanvas';
 import { PomodoroView } from './components/PomodoroView';
 import { FloatingPomodoroWidget } from './components/FloatingPomodoroWidget';
+import { AboutView } from './components/AboutView';
+import { SettingsModal } from './components/SettingsModal';
+import { WelcomeBanner } from './components/WelcomeBanner';
 import { usePomodoro } from './hooks/usePomodoro';
 import {
   Menu,
@@ -46,6 +49,8 @@ import {
   Sigma,
   Timer,
   Calculator,
+  BookOpen,
+  Settings,
 } from 'lucide-react';
 
 interface TabItem {
@@ -75,6 +80,37 @@ export function App() {
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
   const [folders, setFolders] = useState<UserFolder[]>(() => getStoredFolders());
   const pomodoro = usePomodoro();
+
+  // User profile & Name for personalized greeting
+  const [userName, setUserName] = useState<string>(() => {
+    return localStorage.getItem('libremath_user_name') || '';
+  });
+
+  // Settings modal visibility
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Welcome animation state (auto-shows upon entering the app)
+  const [isWelcomeBannerVisible, setIsWelcomeBannerVisible] = useState(true);
+
+  // Force pure Obsidian Dark mode permanently across the entire app
+  useEffect(() => {
+    document.documentElement.classList.remove('light');
+    document.documentElement.classList.add('dark');
+    localStorage.removeItem('libremath_theme');
+  }, []);
+
+  const handleSaveUserName = (name: string) => {
+    setUserName(name);
+    localStorage.setItem('libremath_user_name', name);
+  };
+
+  const handleTriggerWelcomeAnimation = (customName?: string) => {
+    if (customName !== undefined) {
+      setUserName(customName);
+    }
+    setIsWelcomeBannerVisible(false);
+    setTimeout(() => setIsWelcomeBannerVisible(true), 50);
+  };
 
   // Tabs state matching Obsidian
   const [tabs, setTabs] = useState<TabItem[]>([
@@ -173,6 +209,37 @@ export function App() {
       unsub();
     };
   }, [loadIndexTree]);
+
+  // Production hardening: disable right-click inspect and devtools shortcuts
+  useEffect(() => {
+    if (import.meta.env.PROD) {
+      const handleContextMenu = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+          return;
+        }
+        e.preventDefault();
+      };
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (
+          e.key === 'F12' ||
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) ||
+          (e.ctrlKey && (e.key === 'u' || e.key === 'U'))
+        ) {
+          e.preventDefault();
+        }
+      };
+
+      window.addEventListener('contextmenu', handleContextMenu);
+      window.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        window.removeEventListener('contextmenu', handleContextMenu);
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, []);
 
   // Derived selectedTopicSummary
   const selectedTopicSummary = useMemo(() => {
@@ -280,6 +347,7 @@ export function App() {
       'formula-evaluator': 'Banco de Fórmulas',
       favorites: 'Marcadores',
       pomodoro: 'Pomodoro',
+      about: 'README / Acerca de',
     }[view];
 
     setTabs(prev =>
@@ -532,6 +600,8 @@ export function App() {
                   <Bookmark className="w-3.5 h-3.5 text-amber-400 shrink-0 transition-transform duration-200 group-hover:scale-105" />
                 ) : tab.view === 'pomodoro' ? (
                   <Timer className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
+                ) : tab.view === 'about' ? (
+                  <BookOpen className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 ) : (
                   <FileText className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${isActive ? 'text-[#a78bfa]' : 'text-zinc-500'}`} />
                 )}
@@ -562,12 +632,22 @@ export function App() {
         </div>
 
         {/* Right Side: Windows Window Controls & Brand */}
-        <div className="flex items-center gap-2 text-zinc-400 shrink-0">
-          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-white bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-full mr-2">
+        <div className="flex items-center gap-1.5 text-zinc-400 shrink-0">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-white bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-full mr-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
-            <img src="/app-icon.png" alt="IngeData" className="w-3.5 h-3.5 object-contain" />
-            <span className="tracking-tight">IngeData</span>
+            <img src="/app-icon.png" alt="LibreMath" className="w-3.5 h-3.5 object-contain" />
+            <span className="tracking-tight">LibreMath</span>
           </div>
+
+          {/* Desktop Web Settings Button */}
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-1.5 hover:bg-zinc-800/80 rounded-md text-zinc-400 hover:text-white transition-colors cursor-pointer mr-0.5"
+            title="Ajustes (Perfil, Nombre y Tema Claro/Oscuro)"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
+
           <button className="p-1.5 hover:bg-zinc-800/80 rounded text-zinc-400 hover:text-white transition-colors">
             <Minus className="w-3 h-3" />
           </button>
@@ -606,6 +686,7 @@ export function App() {
               folders={folders}
               onCreateFolder={handleCreateCustomModule}
               onDeleteFolder={handleDeleteFolder}
+              onOpenSettings={() => setIsSettingsOpen(true)}
             />
           </div>
         )}
@@ -660,6 +741,10 @@ export function App() {
                 folders={folders}
                 onCreateFolder={handleCreateCustomModule}
                 onDeleteFolder={handleDeleteFolder}
+                onOpenSettings={() => {
+                  setIsSettingsOpen(true);
+                  setIsMobileSidebarOpen(false);
+                }}
               />
             </div>
           </div>
@@ -677,7 +762,7 @@ export function App() {
             </button>
             <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
               <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
-              <span>IngeData</span>
+              <span>LibreMath</span>
             </div>
             <button
               onClick={() => setIsSearchOpen(true)}
@@ -760,6 +845,12 @@ export function App() {
                 </div>
               )}
 
+              {activeView === 'about' && (
+                <div className="h-full overflow-y-auto bg-[#09090b]">
+                  <AboutView />
+                </div>
+              )}
+
               {activeView === 'formula-evaluator' && (
                 <div className="h-full overflow-hidden bg-[#09090b]">
                   <FormulaEvaluator
@@ -820,21 +911,29 @@ export function App() {
       </div>
 
       {/* 3. Modern Minimalist Bottom Status Bar (Flat Design Evolution) */}
-      <footer className="h-6 bg-black border-t border-zinc-800 px-3 flex items-center justify-between text-[11px] text-zinc-400 shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]"></span>
-          <span className="text-zinc-300 font-medium">IngeData</span>
+      <footer className="h-6 bg-black border-t border-zinc-800 px-2.5 sm:px-3 flex items-center justify-between text-[10px] sm:text-[11px] text-zinc-400 shrink-0 overflow-hidden select-none">
+        <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed] shrink-0"></span>
+          <span className="text-zinc-300 font-medium">LibreMath</span>
           <span className="text-zinc-600">|</span>
-          <span className="text-zinc-500">UTN Rosario • UPL</span>
+          <span className="text-zinc-500 truncate">UTN FRRO • UPL</span>
         </div>
 
         {/* Right status stats */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="hidden sm:flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer">
             <PenTool className="w-3 h-3 text-zinc-500" />
             <span>{wordsCount} palabras</span>
             <span>{charsCount.toLocaleString()} caracteres</span>
           </div>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            title="Ajustes de LibreMath"
+          >
+            <Settings className="w-3 h-3 text-zinc-400" />
+            <span>Ajustes</span>
+          </button>
           <div className="flex items-center gap-1 text-emerald-400">
             <Check className="w-3 h-3" />
             <span className="text-[10px] font-mono">Sincronizado</span>
@@ -883,6 +982,22 @@ export function App() {
         onToggle={pomodoro.toggle}
         onOpenFullView={() => handleSwitchView('pomodoro')}
         onDismiss={() => pomodoro.setIsWidgetDismissed(true)}
+      />
+
+      {/* Welcome Banner Animation upon entering the app */}
+      <WelcomeBanner
+        userName={userName}
+        isVisible={isWelcomeBannerVisible}
+        onDismiss={() => setIsWelcomeBannerVisible(false)}
+      />
+
+      {/* Settings Modal (User Name & Preferences) */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        userName={userName}
+        onSaveUserName={handleSaveUserName}
+        onTriggerWelcomeAnimation={handleTriggerWelcomeAnimation}
       />
     </div>
   );

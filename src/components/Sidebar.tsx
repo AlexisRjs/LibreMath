@@ -15,7 +15,6 @@ import {
   Folder,
   ChevronsDownUp,
   Settings,
-  HelpCircle,
   FileText,
   Plus,
   PenTool,
@@ -24,6 +23,7 @@ import {
   CalendarCheck,
   Timer,
   Calculator,
+  BookOpen,
 } from 'lucide-react';
 
 export type ActiveViewType =
@@ -34,7 +34,8 @@ export type ActiveViewType =
   | 'formula-evaluator'
   | 'favorites'
   | 'graph'
-  | 'pomodoro';
+  | 'pomodoro'
+  | 'about';
 
 interface SidebarProps {
   manifests: ModuleManifest[];
@@ -57,6 +58,7 @@ interface SidebarProps {
   folders?: UserFolder[];
   onCreateFolder?: (name: string, color?: 'cyan' | 'violet' | 'amber' | 'emerald' | 'blue' | 'rose') => void;
   onDeleteFolder?: (folderId: string) => void;
+  onOpenSettings?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -80,6 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   folders = [],
   onCreateFolder,
   onDeleteFolder,
+  onOpenSettings,
 }) => {
   const [sidebarPanelTab, setSidebarPanelTab] = useState<'files' | 'todo'>('files');
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
@@ -134,14 +137,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const userNotes = topics.filter(t => t.isUserNote);
 
   return (
-    <div className="flex h-screen select-none shrink-0 text-white text-xs">
+    <div className="flex h-full select-none shrink-0 text-white text-xs">
       {/* 1. Modern Minimalist Left Activity Ribbon (Flat Evolution) */}
       <nav className="w-11 h-full bg-black border-r border-zinc-800 flex flex-col items-center justify-between py-2 shrink-0 z-20">
         {/* Top Tools */}
         <div className="flex flex-col items-center gap-1.5 w-full">
           {/* App Logo */}
-          <div className="w-8 h-8 rounded-lg mb-1 flex items-center justify-center p-1 bg-zinc-900 border border-zinc-800 hover:border-[#7c3aed] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-xs" title="IngeData">
-            <img src="/app-icon.png" alt="IngeData" className="w-full h-full object-contain" />
+          <div
+            onClick={() => setActiveView('about')}
+            className="w-8 h-8 rounded-lg mb-1 flex items-center justify-center p-1 bg-zinc-900 border border-zinc-800 hover:border-[#7c3aed] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-xs"
+            title="LibreMath - Acerca de / README"
+          >
+            <img src="/app-icon.png" alt="LibreMath" className="w-full h-full object-contain" />
           </div>
 
           {/* Files Explorer Toggle */}
@@ -276,15 +283,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Bottom User & Settings */}
         <div className="flex flex-col items-center gap-1.5 w-full">
+          {/* README / About Button */}
           <button
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900 hover:scale-105 active:scale-90 transition-all duration-200"
-            title="Ayuda"
+            onClick={() => setActiveView('about')}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105 active:scale-90 ${
+              activeView === 'about'
+                ? 'bg-[#7c3aed] text-white shadow-[0_0_12px_rgba(124,58,237,0.45)]'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+            }`}
+            title="README / Acerca de LibreMath (Créditos, Tecnologías y Contacto)"
           >
-            <HelpCircle className="w-4 h-4" />
+            <BookOpen className="w-4 h-4" />
           </button>
           <button
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900 hover:scale-105 active:scale-90 transition-all duration-200"
-            title="Ajustes"
+            onClick={onOpenSettings}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900 hover:scale-105 active:scale-90 transition-all duration-200 cursor-pointer"
+            title="Ajustes (Usuario, Nombre y Tema Claro/Oscuro)"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -348,6 +362,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <ChevronsDownUp className="w-3.5 h-3.5" />
               </button>
+              <button
+                onClick={onOpenSettings}
+                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer shrink-0"
+                title="Ajustes (Perfil y Tema Claro/Oscuro)"
+              >
+                <Settings className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
         </div>
@@ -365,8 +386,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto px-1.5 py-1.5 space-y-0.5 font-sans">
-            {/* Pinned "Mis Notas" Section */}
-            <div className="select-none mb-1.5 pb-1.5 border-b border-zinc-800/80">
+            {/* Pinned Quick Access: Mis Notas & Calculadora de Cálculo */}
+            <div className="select-none mb-1.5 pb-1.5 border-b border-zinc-800/80 space-y-1">
               <div className="flex items-center justify-between group rounded-md hover:bg-zinc-900/60 pr-1">
                 <button
                   onClick={() => setActiveView('my-notes')}
@@ -376,27 +397,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-zinc-300 hover:text-white'
                   }`}
                 >
-                <PenTool className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
-                <span className="truncate">Mis Notas</span>
-                {userNotes.length > 0 && (
-                  <span className="ml-auto text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">
-                    {userNotes.length}
-                  </span>
-                )}
-              </button>
+                  <PenTool className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
+                  <span className="truncate">Mis Notas</span>
+                  {userNotes.length > 0 && (
+                    <span className="ml-auto text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">
+                      {userNotes.length}
+                    </span>
+                  )}
+                </button>
 
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  setActiveView('my-notes');
-                }}
-                className="p-1 rounded text-zinc-500 hover:text-white hover:bg-zinc-800 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                title="Escribir en Mis Notas"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    setActiveView('my-notes');
+                  }}
+                  className="p-1 rounded text-zinc-500 hover:text-white hover:bg-zinc-800 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                  title="Escribir en Mis Notas"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Pinned Calculadora de Derivadas e Integrales */}
+              <div className="flex items-center justify-between group rounded-md hover:bg-zinc-900/60 pr-1">
+                <button
+                  onClick={() => setActiveView('calculus-calculator')}
+                  className={`flex-1 flex items-center gap-2 px-2.5 py-1.5 text-left transition-all text-xs min-w-0 rounded-md ${
+                    activeView === 'calculus-calculator'
+                      ? 'bg-[#7c3aed]/15 text-white font-semibold border-l-2 border-[#7c3aed]'
+                      : 'text-zinc-300 hover:text-white'
+                  }`}
+                  title="Calculadora de Derivadas, Integrales y EDOs con resolución paso a paso"
+                >
+                  <Calculator className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
+                  <span className="truncate font-medium">Calculadora de Cálculo</span>
+                </button>
+              </div>
             </div>
-          </div>
 
           {manifests.map(manifest => {
             const isExpanded = expandedModules[manifest.id] ?? false;
@@ -481,9 +518,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         >
                           <Grid className={`w-3.5 h-3.5 shrink-0 ${activeView === 'matrix-calculator' ? 'text-[#a78bfa]' : 'text-[#7c3aed]'}`} />
                           <span className="truncate font-medium">Calculadora Matricial</span>
-                          <span className="ml-auto text-[9px] px-1 py-0.2 rounded bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/40 shrink-0 font-mono">
-                            calc
-                          </span>
                         </button>
                       </div>
                     )}
@@ -501,9 +535,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         >
                           <Calculator className={`w-3.5 h-3.5 shrink-0 ${activeView === 'calculus-calculator' ? 'text-[#a78bfa]' : 'text-[#7c3aed]'}`} />
                           <span className="truncate font-medium">Derivadas e Integrales</span>
-                          <span className="ml-auto text-[9px] px-1 py-0.2 rounded bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/40 shrink-0 font-mono">
-                            pasos
-                          </span>
                         </button>
                       </div>
                     )}
@@ -714,16 +745,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Vault Profile Footer with UPL / UTN branding */}
-        <div className="p-2.5 border-t border-zinc-800 flex items-center justify-between text-zinc-400 bg-black">
+        <div
+          onClick={() => setActiveView('about')}
+          className="p-2.5 border-t border-zinc-800 flex items-center justify-between text-zinc-400 bg-black cursor-pointer hover:bg-zinc-900/70 transition-colors"
+          title="Ver README / Acerca de LibreMath"
+        >
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-md bg-zinc-900 border border-zinc-800 flex items-center justify-center p-0.5 overflow-hidden">
-              <img src="/app-icon.png" alt="IngeData" className="w-full h-full object-contain" />
+              <img src="/app-icon.png" alt="LibreMath" className="w-full h-full object-contain" />
             </div>
-            <span className="text-[11px] font-medium text-white">IngeData</span>
+            <span className="text-[11px] font-medium text-white">LibreMath</span>
           </div>
-          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/30 font-semibold">
-            UPL
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-purple-950/60 text-[#c4b5fd] border border-[#7c3aed]/30 font-semibold">
+              README
+            </span>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-[#a78bfa] border border-[#7c3aed]/30 font-semibold">
+              UPL
+            </span>
+          </div>
         </div>
       </aside>
       {/* Internal New Folder Modal fallback */}

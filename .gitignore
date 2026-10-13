@@ -111,3 +111,6 @@ coverage/
 .nyc_output/
 .parcel-cache/
 .cache/
+*.tmp
+*.temp
+scratch/
