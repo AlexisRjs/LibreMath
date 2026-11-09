@@ -93,7 +93,7 @@ export const AboutView: React.FC = () => {
             Desarrollé LibreMath como una iniciativa estudiantil y de código abierto para resolver una necesidad común en nuestras cursadas: contar con un espacio unificado, ágil, offline y con renderizado matemático de primer nivel que combine apuntes teóricos, cálculo simbólico avanzado paso a paso y herramientas de productividad.
           </p>
           <p className="text-zinc-400">
-            El proyecto se articula en conjunto con la comunidad de <strong className="text-zinc-200">UPL (Unidad Popular de Lucha)</strong> de UTN Rosario, buscando facilitar el acceso a apuntes, ejercicios resueltos y materiales para toda la comunidad académica.
+            El proyecto se articula en conjunto con la comunidad de <strong className="text-zinc-200">UPL (universitarios Por la Libertad)</strong> de UTN Rosario, buscando facilitar el acceso a apuntes, ejercicios resueltos y materiales para toda la comunidad académica.
           </p>
         </div>
 
